@@ -508,6 +508,607 @@
         .player-select-close:active { background: #e0e0e0; }
 
         /* =========================================
+           動物レース専用画面（運動会デザイン）
+           ========================================= */
+        #raceSetupScreen {
+            background: linear-gradient(180deg, #87CEEB 0%, #98FB98 50%, #90EE90 100%);
+            padding-top: 70px;
+            min-height: 100vh;
+            position: relative;
+        }
+        #raceSetupScreen::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 120px;
+            background: linear-gradient(180deg, transparent 0%, rgba(139,69,19,0.3) 100%);
+            pointer-events: none;
+        }
+        /* 運動場のトラック模様 */
+        .race-ground-pattern {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            height: 8px;
+            background: repeating-linear-gradient(90deg, #fff 0px, #fff 20px, #e74c3c 20px, #e74c3c 40px);
+            border-radius: 4px;
+            opacity: 0.6;
+        }
+
+        .race-setup-content {
+            padding: 20px;
+            padding-bottom: 180px;
+        }
+
+        .race-section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            background: rgba(255,255,255,0.8);
+            padding: 12px 16px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .race-section-title .icon { font-size: 1.4rem; }
+
+        /* キャラクター追加ボタン */
+        .add-character-btn {
+            width: 100%;
+            padding: 20px;
+            border: 3px dashed #e74c3c;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.9);
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #e74c3c;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            transition: transform 0.15s, background 0.15s;
+        }
+        .add-character-btn:active {
+            transform: scale(0.98);
+            background: rgba(231,76,60,0.1);
+        }
+        .add-character-btn .plus-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #e74c3c;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        /* キャラクターリスト */
+        .character-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .character-item {
+            display: flex;
+            align-items: center;
+            background: white;
+            padding: 12px;
+            border-radius: 16px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .character-item.selected {
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe8ec 100%);
+            border: 2px solid #e74c3c;
+            box-shadow: 0 5px 15px rgba(231,76,60,0.2);
+        }
+        .character-item.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            width: 24px;
+            height: 24px;
+            background: #e74c3c;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .character-item.swiping {
+            transition: none;
+        }
+        .character-item .delete-bg {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 80px;
+            background: #e74c3c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            transform: translateX(100%);
+        }
+
+        .character-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .character-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .character-name {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .character-animal {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        /* 下部固定エリア */
+        .race-bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            padding-bottom: max(15px, env(safe-area-inset-bottom));
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .race-bottom-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .participant-count-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 70px;
+        }
+        .participant-label {
+            font-size: 0.7rem;
+            color: #888;
+            margin-bottom: 4px;
+        }
+        .participant-count {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #e74c3c;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #e74c3c;
+            background: white;
+        }
+
+        .race-next-btn {
+            flex: 1;
+            padding: 16px;
+            border-radius: 16px;
+            border: none;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(231,76,60,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: transform 0.15s;
+        }
+        .race-next-btn:active {
+            transform: scale(0.98);
+        }
+        .race-next-btn:disabled {
+            background: #ccc;
+            box-shadow: none;
+        }
+
+        /* キャラクター追加モーダル */
+        #characterModal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 2000;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        #characterModal.open {
+            opacity: 1;
+            visibility: visible;
+        }
+        .character-modal-card {
+            background: white;
+            width: 100%;
+            max-width: 500px;
+            border-radius: 24px 24px 0 0;
+            padding: 25px;
+            padding-bottom: max(25px, env(safe-area-inset-bottom));
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #characterModal.open .character-modal-card {
+            transform: translateY(0);
+        }
+        .character-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .character-modal-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+        }
+        .character-modal-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: #f0f0f0;
+            font-size: 1.2rem;
+            color: #888;
+            cursor: pointer;
+        }
+
+        /* 動物アイコン選択 */
+        .animal-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .animal-option {
+            aspect-ratio: 1;
+            border-radius: 16px;
+            border: 3px solid #eee;
+            background: #f9f9f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: transform 0.15s, border-color 0.15s;
+        }
+        .animal-option:active {
+            transform: scale(0.95);
+        }
+        .animal-option.selected {
+            border-color: #e74c3c;
+            background: #fff5f5;
+        }
+        .animal-option.used {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* 名前入力 */
+        .name-input-area {
+            margin-bottom: 20px;
+        }
+        .name-input-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .name-input-row {
+            display: flex;
+            gap: 10px;
+        }
+        .name-input {
+            flex: 1;
+            padding: 14px 16px;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .name-input:focus {
+            border-color: #e74c3c;
+        }
+        .random-name-btn {
+            padding: 14px 20px;
+            border-radius: 12px;
+            border: none;
+            background: #f0f0f0;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #666;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .random-name-btn:active {
+            background: #e0e0e0;
+        }
+
+        /* モーダルボタン */
+        .character-modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .modal-cancel-btn {
+            flex: 1;
+            padding: 16px;
+            border-radius: 12px;
+            border: 2px solid #ddd;
+            background: white;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #666;
+            cursor: pointer;
+        }
+        .modal-confirm-btn {
+            flex: 2;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            font-size: 1rem;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+        }
+        .modal-confirm-btn:disabled {
+            background: #ccc;
+        }
+
+        /* ゴール選択肢画面（運動会バージョン） */
+        #raceGoalScreen {
+            background: linear-gradient(180deg, #87CEEB 0%, #98FB98 50%, #90EE90 100%);
+            padding-top: 70px;
+            min-height: 100vh;
+        }
+        .race-goal-content {
+            padding: 20px;
+            padding-bottom: 120px;
+        }
+        .race-goal-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .race-goal-item {
+            display: flex;
+            align-items: center;
+            background: white;
+            padding: 5px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        .race-goal-index {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        .race-goal-input {
+            flex: 1;
+            border: none;
+            font-size: 1.1rem;
+            padding: 12px;
+            outline: none;
+            background: transparent;
+        }
+        .race-add-goal-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            border: none;
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(231,76,60,0.3);
+            cursor: pointer;
+            margin: 0 auto 20px;
+        }
+
+        /* スタートライン配置画面 */
+        #raceStartScreen {
+            background: linear-gradient(180deg, #87CEEB 0%, #F4A460 70%, #DEB887 100%);
+            padding-top: 70px;
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+        .start-instruction {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255,255,255,0.9);
+            margin: 10px 20px;
+            border-radius: 12px;
+            font-weight: bold;
+            color: #333;
+        }
+        .start-line-area {
+            position: relative;
+            margin: 20px;
+            padding: 20px 0;
+        }
+        .start-line {
+            height: 60px;
+            background: white;
+            border: 3px solid #e74c3c;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        .start-line.occupied {
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe8ec 100%);
+        }
+        .start-line-label {
+            position: absolute;
+            left: 10px;
+            font-size: 0.8rem;
+            color: #888;
+        }
+        .start-line .character-avatar {
+            margin-right: 10px;
+        }
+        .start-line .character-name {
+            font-size: 1rem;
+        }
+
+        .waiting-characters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 16px;
+            margin: 20px;
+        }
+        .waiting-character {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: grab;
+            touch-action: none;
+        }
+        .waiting-character:active {
+            cursor: grabbing;
+        }
+        .waiting-character .character-avatar {
+            width: 45px;
+            height: 45px;
+            font-size: 1.5rem;
+            margin: 0 0 5px 0;
+        }
+        .waiting-character .character-name {
+            font-size: 0.8rem;
+        }
+
+        .race-start-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            padding: 18px;
+            border-radius: 16px;
+            border: none;
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(46,204,113,0.4);
+        }
+        .race-start-btn:disabled {
+            background: #ccc;
+            box-shadow: none;
+        }
+
+        /* レース開始演出 */
+        .race-countdown-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 3000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s;
+        }
+        .race-countdown-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .countdown-text {
+            font-size: 4rem;
+            font-weight: 900;
+            color: white;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            animation: countdownPop 0.5s ease-out;
+        }
+        @keyframes countdownPop {
+            0% { transform: scale(2); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* =========================================
            グローバルヘッダー
            ========================================= */
         #globalHeader {
@@ -1652,7 +2253,7 @@
             <h3 style="margin:0; color:#333;">ふつうのあみだ</h3>
             <p style="margin:8px 0 0; color:#888; font-size:0.9rem;">短くサクサク決める</p>
         </div>
-        <div class="menu-card race-card" onclick="openPlayerSelect()">
+        <div class="menu-card race-card" onclick="openRaceSetup()">
             <div class="menu-icon-wrapper">
                 <div class="race-icon">
                     <div class="finish-sparkle"></div>
@@ -1668,6 +2269,120 @@
             <h3 style="margin:0; color:#333;">動物レース</h3>
             <p style="margin:8px 0 0; color:#888; font-size:0.9rem;">長〜いコースで競争</p>
         </div>
+    </div>
+
+    <!-- 動物レース専用画面 -->
+    <div id="raceSetupScreen" class="screen">
+        <div class="race-ground-pattern"></div>
+        <div class="race-setup-content">
+            <div class="race-section-title">
+                <span class="icon">🏃</span>
+                参加キャラクター
+            </div>
+
+            <button class="add-character-btn" onclick="openCharacterModal()">
+                <span class="plus-icon">+</span>
+                参加キャラを追加
+            </button>
+
+            <div class="character-list" id="characterList">
+                <!-- キャラクターがここに追加される -->
+            </div>
+        </div>
+
+        <div class="race-bottom-bar">
+            <div class="race-bottom-content">
+                <div class="participant-count-box">
+                    <span class="participant-label">参加数</span>
+                    <div class="participant-count" id="participantCount">0</div>
+                </div>
+                <button class="race-next-btn" id="raceNextBtn" onclick="goToRaceGoalScreen()" disabled>
+                    ゴールの項目を選択
+                    <span>→</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- キャラクター追加モーダル -->
+    <div id="characterModal" onclick="closeCharacterModal(event)">
+        <div class="character-modal-card" onclick="event.stopPropagation()">
+            <div class="character-modal-header">
+                <span class="character-modal-title" id="characterModalTitle">キャラクターを追加</span>
+                <button class="character-modal-close" onclick="closeCharacterModal()">&times;</button>
+            </div>
+
+            <div class="animal-grid" id="animalGrid">
+                <!-- 動物アイコンがここに生成される -->
+            </div>
+
+            <div class="name-input-area">
+                <label class="name-input-label">なまえ</label>
+                <div class="name-input-row">
+                    <input type="text" class="name-input" id="characterNameInput" placeholder="キャラクターの名前" maxlength="10">
+                    <button class="random-name-btn" onclick="setRandomName()">おまかせ</button>
+                </div>
+            </div>
+
+            <div class="character-modal-buttons">
+                <button class="modal-cancel-btn" onclick="closeCharacterModal()">キャンセル</button>
+                <button class="modal-confirm-btn" id="characterConfirmBtn" onclick="confirmCharacter()" disabled>決定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ゴール選択肢画面 -->
+    <div id="raceGoalScreen" class="screen">
+        <div class="race-goal-content">
+            <div class="race-section-title">
+                <span class="icon">🏁</span>
+                ゴールの選択肢を入力
+            </div>
+            <p style="color:#666; font-size:0.85rem; margin-bottom:15px; text-align:center;">
+                ← スワイプで削除 / <span id="minGoalCount">2</span>個以上必要
+            </p>
+
+            <div class="race-goal-list" id="raceGoalList">
+                <!-- ゴール選択肢がここに追加される -->
+            </div>
+
+            <div style="display:flex; justify-content:center; margin-bottom:20px;">
+                <button class="race-add-goal-btn" id="raceAddGoalBtn" onclick="addRaceGoalItem()">＋</button>
+            </div>
+        </div>
+
+        <div class="race-bottom-bar">
+            <div class="race-bottom-content">
+                <button class="race-next-btn" id="raceStartSetupBtn" onclick="goToStartLineScreen()" disabled>
+                    スタートラインへ
+                    <span>→</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- スタートライン配置画面 -->
+    <div id="raceStartScreen" class="screen">
+        <div class="start-instruction">
+            キャラクターをドラッグして<br>好きなスタートラインに配置しよう！
+        </div>
+
+        <div class="waiting-characters" id="waitingCharacters">
+            <!-- 配置待ちのキャラクター -->
+        </div>
+
+        <div class="start-line-area" id="startLineArea">
+            <!-- スタートラインがここに生成される -->
+        </div>
+
+        <button class="race-start-btn" id="raceStartBtn" onclick="startRaceCountdown()" disabled>
+            レーススタート！
+        </button>
+    </div>
+
+    <!-- レース開始カウントダウン -->
+    <div class="race-countdown-overlay" id="raceCountdownOverlay">
+        <div class="countdown-text" id="countdownText"></div>
     </div>
 
     <div id="setupScreen" class="screen">
@@ -1751,7 +2466,7 @@
     <script>
         const MAX_COUNT = 8;
         const MIN_COUNT = 2;
-        const screens = ['menuScreen', 'setupScreen', 'gameScreen'];
+        const screens = ['menuScreen', 'setupScreen', 'gameScreen', 'raceSetupScreen', 'raceGoalScreen', 'raceStartScreen'];
         let currentMode = 'normal';
         const numCircle = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧'];
 
@@ -2795,6 +3510,562 @@
 
             showScreen('setupScreen');
         }
+
+        // =========================================
+        // 動物レース専用機能
+        // =========================================
+        const animalList = [
+            { emoji: '🐰', name: 'うさぎ' },
+            { emoji: '🐱', name: 'ねこ' },
+            { emoji: '🐶', name: 'いぬ' },
+            { emoji: '🐻', name: 'くま' },
+            { emoji: '🐼', name: 'パンダ' },
+            { emoji: '🦊', name: 'きつね' },
+            { emoji: '🐯', name: 'とら' },
+            { emoji: '🦁', name: 'ライオン' },
+            { emoji: '🐸', name: 'かえる' },
+            { emoji: '🐵', name: 'さる' },
+            { emoji: '🐧', name: 'ペンギン' },
+            { emoji: '🐦', name: 'とり' },
+            { emoji: '🐢', name: 'かめ' },
+            { emoji: '🐍', name: 'へび' },
+            { emoji: '🦄', name: 'ユニコーン' }
+        ];
+
+        const randomNames = [
+            'はやて', 'ひかり', 'つばさ', 'そら', 'ゆめ',
+            'ほし', 'かぜ', 'うみ', 'やま', 'もり',
+            'たいよう', 'つき', 'にじ', 'くも', 'あめ',
+            'さくら', 'もも', 'りん', 'あおい', 'みどり'
+        ];
+
+        let raceCharacters = []; // {id, animal, name, selected}
+        let selectedAnimalEmoji = null;
+        let editingCharacterId = null;
+        let raceGoals = [];
+        let startLineAssignments = []; // {lineIndex, character}
+
+        function openRaceSetup() {
+            currentMode = 'race';
+            raceCharacters = [];
+            selectedAnimalEmoji = null;
+            renderCharacterList();
+            updateParticipantCount();
+            showScreen('raceSetupScreen');
+        }
+
+        // キャラクター追加モーダル
+        function openCharacterModal(editId = null) {
+            editingCharacterId = editId;
+            selectedAnimalEmoji = null;
+
+            if (editId !== null) {
+                const char = raceCharacters.find(c => c.id === editId);
+                if (char) {
+                    selectedAnimalEmoji = char.animal;
+                    document.getElementById('characterNameInput').value = char.name;
+                    document.getElementById('characterModalTitle').textContent = 'キャラクターを編集';
+                }
+            } else {
+                document.getElementById('characterNameInput').value = '';
+                document.getElementById('characterModalTitle').textContent = 'キャラクターを追加';
+            }
+
+            renderAnimalGrid();
+            updateCharacterConfirmBtn();
+            document.getElementById('characterModal').classList.add('open');
+        }
+
+        function closeCharacterModal(event) {
+            if (event && event.target !== event.currentTarget) return;
+            document.getElementById('characterModal').classList.remove('open');
+            editingCharacterId = null;
+        }
+
+        function renderAnimalGrid() {
+            const grid = document.getElementById('animalGrid');
+            const usedAnimals = raceCharacters
+                .filter(c => editingCharacterId === null || c.id !== editingCharacterId)
+                .map(c => c.animal);
+
+            grid.innerHTML = animalList.map(animal => {
+                const isUsed = usedAnimals.includes(animal.emoji);
+                const isSelected = selectedAnimalEmoji === animal.emoji;
+                return `<div class="animal-option ${isSelected ? 'selected' : ''} ${isUsed ? 'used' : ''}"
+                            onclick="selectAnimal('${animal.emoji}')">${animal.emoji}</div>`;
+            }).join('');
+        }
+
+        function selectAnimal(emoji) {
+            selectedAnimalEmoji = emoji;
+            renderAnimalGrid();
+            updateCharacterConfirmBtn();
+        }
+
+        function setRandomName() {
+            const name = randomNames[Math.floor(Math.random() * randomNames.length)];
+            document.getElementById('characterNameInput').value = name;
+            updateCharacterConfirmBtn();
+        }
+
+        function updateCharacterConfirmBtn() {
+            const name = document.getElementById('characterNameInput').value.trim();
+            const btn = document.getElementById('characterConfirmBtn');
+            btn.disabled = !selectedAnimalEmoji || !name;
+        }
+
+        document.getElementById('characterNameInput')?.addEventListener('input', updateCharacterConfirmBtn);
+
+        function confirmCharacter() {
+            const name = document.getElementById('characterNameInput').value.trim();
+            if (!selectedAnimalEmoji || !name) return;
+
+            if (editingCharacterId !== null) {
+                // 編集モード
+                const char = raceCharacters.find(c => c.id === editingCharacterId);
+                if (char) {
+                    char.animal = selectedAnimalEmoji;
+                    char.name = name;
+                }
+            } else {
+                // 新規追加
+                raceCharacters.push({
+                    id: Date.now(),
+                    animal: selectedAnimalEmoji,
+                    name: name,
+                    selected: false
+                });
+            }
+
+            closeCharacterModal();
+            renderCharacterList();
+            updateParticipantCount();
+        }
+
+        function renderCharacterList() {
+            const list = document.getElementById('characterList');
+            list.innerHTML = raceCharacters.map(char => `
+                <div class="character-item ${char.selected ? 'selected' : ''}"
+                     data-id="${char.id}"
+                     ontouchstart="handleCharacterTouchStart(event, ${char.id})"
+                     ontouchmove="handleCharacterTouchMove(event, ${char.id})"
+                     ontouchend="handleCharacterTouchEnd(event, ${char.id})">
+                    <div class="delete-bg">削除</div>
+                    <div class="character-avatar">${char.animal}</div>
+                    <div class="character-info">
+                        <div class="character-name">${char.name}</div>
+                        <div class="character-animal">${getAnimalName(char.animal)}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getAnimalName(emoji) {
+            const animal = animalList.find(a => a.emoji === emoji);
+            return animal ? animal.name : '';
+        }
+
+        // スワイプ削除 & 長押し編集 & タップ選択
+        let charTouchStartX = 0;
+        let charTouchCurrentX = 0;
+        let charLongPressTimer = null;
+        let charIsSwiping = false;
+
+        function handleCharacterTouchStart(event, id) {
+            charTouchStartX = event.touches[0].clientX;
+            charTouchCurrentX = charTouchStartX;
+            charIsSwiping = false;
+
+            // 長押し検出
+            charLongPressTimer = setTimeout(() => {
+                openCharacterModal(id);
+                charLongPressTimer = null;
+            }, 500);
+        }
+
+        function handleCharacterTouchMove(event, id) {
+            charTouchCurrentX = event.touches[0].clientX;
+            const diff = charTouchStartX - charTouchCurrentX;
+
+            if (Math.abs(diff) > 10) {
+                clearTimeout(charLongPressTimer);
+                charLongPressTimer = null;
+                charIsSwiping = true;
+
+                const item = event.currentTarget;
+                item.classList.add('swiping');
+                const translateX = Math.min(0, Math.max(-80, -diff));
+                item.style.transform = `translateX(${translateX}px)`;
+            }
+        }
+
+        function handleCharacterTouchEnd(event, id) {
+            clearTimeout(charLongPressTimer);
+            charLongPressTimer = null;
+
+            const diff = charTouchStartX - charTouchCurrentX;
+            const item = event.currentTarget;
+            item.classList.remove('swiping');
+
+            if (diff > 80) {
+                // 削除
+                item.style.transform = 'translateX(-100%)';
+                item.style.opacity = '0';
+                setTimeout(() => {
+                    raceCharacters = raceCharacters.filter(c => c.id !== id);
+                    renderCharacterList();
+                    updateParticipantCount();
+                }, 200);
+            } else if (!charIsSwiping) {
+                // タップ = 選択/解除
+                toggleCharacterSelection(id);
+                item.style.transform = '';
+            } else {
+                item.style.transform = '';
+            }
+        }
+
+        function toggleCharacterSelection(id) {
+            const char = raceCharacters.find(c => c.id === id);
+            if (!char) return;
+
+            const selectedCount = raceCharacters.filter(c => c.selected).length;
+
+            if (char.selected) {
+                char.selected = false;
+            } else if (selectedCount < 8) {
+                char.selected = true;
+            }
+
+            renderCharacterList();
+            updateParticipantCount();
+        }
+
+        function updateParticipantCount() {
+            const count = raceCharacters.filter(c => c.selected).length;
+            document.getElementById('participantCount').textContent = count;
+            document.getElementById('raceNextBtn').disabled = count < 2;
+        }
+
+        // ゴール選択肢画面
+        function goToRaceGoalScreen() {
+            const selectedCount = raceCharacters.filter(c => c.selected).length;
+            document.getElementById('minGoalCount').textContent = selectedCount;
+
+            raceGoals = [];
+            const goalList = document.getElementById('raceGoalList');
+            goalList.innerHTML = '';
+
+            // 選択人数分の空欄を作成
+            for (let i = 0; i < selectedCount; i++) {
+                addRaceGoalItem();
+            }
+
+            showScreen('raceGoalScreen');
+        }
+
+        function addRaceGoalItem() {
+            const goalList = document.getElementById('raceGoalList');
+            const index = goalList.children.length;
+            if (index >= 8) return;
+
+            const item = document.createElement('div');
+            item.className = 'race-goal-item';
+            item.innerHTML = `
+                <div class="race-goal-index">${index + 1}</div>
+                <input type="text" class="race-goal-input" placeholder="選択肢を入力" maxlength="20"
+                       oninput="updateRaceGoalBtn()">
+            `;
+
+            // スワイプ削除
+            item.addEventListener('touchstart', (e) => raceGoalTouchStart(e, item));
+            item.addEventListener('touchmove', (e) => raceGoalTouchMove(e, item));
+            item.addEventListener('touchend', (e) => raceGoalTouchEnd(e, item));
+
+            goalList.appendChild(item);
+            updateRaceGoalBtn();
+
+            if (goalList.children.length >= 8) {
+                document.getElementById('raceAddGoalBtn').style.display = 'none';
+            }
+        }
+
+        let goalTouchStartX = 0;
+        let goalTouchCurrentX = 0;
+
+        function raceGoalTouchStart(e, item) {
+            goalTouchStartX = e.touches[0].clientX;
+            goalTouchCurrentX = goalTouchStartX;
+        }
+
+        function raceGoalTouchMove(e, item) {
+            goalTouchCurrentX = e.touches[0].clientX;
+            const diff = goalTouchStartX - goalTouchCurrentX;
+            if (diff > 10) {
+                const translateX = Math.min(0, Math.max(-80, -diff));
+                item.style.transform = `translateX(${translateX}px)`;
+            }
+        }
+
+        function raceGoalTouchEnd(e, item) {
+            const diff = goalTouchStartX - goalTouchCurrentX;
+            const minCount = raceCharacters.filter(c => c.selected).length;
+            const currentCount = document.getElementById('raceGoalList').children.length;
+
+            if (diff > 80 && currentCount > minCount) {
+                item.style.transform = 'translateX(-100%)';
+                item.style.opacity = '0';
+                setTimeout(() => {
+                    item.remove();
+                    reindexRaceGoals();
+                    updateRaceGoalBtn();
+                    document.getElementById('raceAddGoalBtn').style.display = 'flex';
+                }, 200);
+            } else {
+                item.style.transform = '';
+            }
+        }
+
+        function reindexRaceGoals() {
+            const items = document.getElementById('raceGoalList').children;
+            Array.from(items).forEach((item, i) => {
+                item.querySelector('.race-goal-index').textContent = i + 1;
+            });
+        }
+
+        function updateRaceGoalBtn() {
+            const inputs = document.querySelectorAll('.race-goal-input');
+            const minCount = raceCharacters.filter(c => c.selected).length;
+            let filledCount = 0;
+
+            inputs.forEach(input => {
+                if (input.value.trim()) filledCount++;
+            });
+
+            document.getElementById('raceStartSetupBtn').disabled = filledCount < minCount;
+        }
+
+        // スタートライン配置画面
+        function goToStartLineScreen() {
+            const selectedChars = raceCharacters.filter(c => c.selected);
+            const goalInputs = document.querySelectorAll('.race-goal-input');
+
+            raceGoals = Array.from(goalInputs)
+                .map(input => input.value.trim())
+                .filter(v => v);
+
+            startLineAssignments = new Array(selectedChars.length).fill(null);
+
+            renderWaitingCharacters(selectedChars);
+            renderStartLines(selectedChars.length);
+            updateRaceStartBtn();
+
+            showScreen('raceStartScreen');
+        }
+
+        function renderWaitingCharacters(chars) {
+            const container = document.getElementById('waitingCharacters');
+            container.innerHTML = chars.map(char => `
+                <div class="waiting-character" draggable="true" data-id="${char.id}"
+                     ontouchstart="dragStart(event, ${char.id})"
+                     ontouchmove="dragMove(event)"
+                     ontouchend="dragEnd(event, ${char.id})">
+                    <div class="character-avatar">${char.animal}</div>
+                    <div class="character-name">${char.name}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderStartLines(count) {
+            const area = document.getElementById('startLineArea');
+            area.innerHTML = '';
+
+            for (let i = 0; i < count; i++) {
+                const line = document.createElement('div');
+                line.className = 'start-line';
+                line.dataset.index = i;
+                line.innerHTML = `<span class="start-line-label">レーン ${i + 1}</span>`;
+                area.appendChild(line);
+            }
+        }
+
+        let draggedCharId = null;
+        let dragGhost = null;
+
+        function dragStart(event, id) {
+            draggedCharId = id;
+            const touch = event.touches[0];
+
+            // ドラッグ中の見た目を作成
+            const char = raceCharacters.find(c => c.id === id);
+            dragGhost = document.createElement('div');
+            dragGhost.className = 'waiting-character';
+            dragGhost.style.cssText = `
+                position: fixed;
+                z-index: 9999;
+                pointer-events: none;
+                opacity: 0.9;
+                transform: scale(1.1);
+            `;
+            dragGhost.innerHTML = `
+                <div class="character-avatar">${char.animal}</div>
+                <div class="character-name">${char.name}</div>
+            `;
+            document.body.appendChild(dragGhost);
+            updateGhostPosition(touch.clientX, touch.clientY);
+
+            event.currentTarget.style.opacity = '0.3';
+        }
+
+        function dragMove(event) {
+            if (!dragGhost) return;
+            const touch = event.touches[0];
+            updateGhostPosition(touch.clientX, touch.clientY);
+        }
+
+        function updateGhostPosition(x, y) {
+            if (dragGhost) {
+                dragGhost.style.left = (x - 40) + 'px';
+                dragGhost.style.top = (y - 40) + 'px';
+            }
+        }
+
+        function dragEnd(event, id) {
+            if (dragGhost) {
+                dragGhost.remove();
+                dragGhost = null;
+            }
+
+            const touch = event.changedTouches[0];
+            const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+            const startLine = dropTarget?.closest('.start-line');
+
+            if (startLine) {
+                const lineIndex = parseInt(startLine.dataset.index);
+                placeCharacterOnLine(id, lineIndex);
+            }
+
+            // 元の要素を戻す
+            const waitingItems = document.querySelectorAll('.waiting-character');
+            waitingItems.forEach(item => item.style.opacity = '1');
+
+            draggedCharId = null;
+            updateRaceStartBtn();
+        }
+
+        function placeCharacterOnLine(charId, lineIndex) {
+            const char = raceCharacters.find(c => c.id === charId);
+            if (!char) return;
+
+            // すでにどこかにあれば外す
+            const prevIndex = startLineAssignments.indexOf(char);
+            if (prevIndex !== -1) {
+                startLineAssignments[prevIndex] = null;
+            }
+
+            // もし他のキャラがいたら入れ替え
+            const existingChar = startLineAssignments[lineIndex];
+            if (existingChar) {
+                if (prevIndex !== -1) {
+                    startLineAssignments[prevIndex] = existingChar;
+                } else {
+                    // 待機エリアに戻す
+                }
+            }
+
+            startLineAssignments[lineIndex] = char;
+            renderStartLinesWithCharacters();
+            renderWaitingArea();
+        }
+
+        function renderStartLinesWithCharacters() {
+            const lines = document.querySelectorAll('.start-line');
+            lines.forEach((line, i) => {
+                const char = startLineAssignments[i];
+                if (char) {
+                    line.classList.add('occupied');
+                    line.innerHTML = `
+                        <span class="start-line-label">レーン ${i + 1}</span>
+                        <div class="character-avatar">${char.animal}</div>
+                        <div class="character-name">${char.name}</div>
+                    `;
+                } else {
+                    line.classList.remove('occupied');
+                    line.innerHTML = `<span class="start-line-label">レーン ${i + 1}</span>`;
+                }
+            });
+        }
+
+        function renderWaitingArea() {
+            const assignedIds = startLineAssignments.filter(c => c).map(c => c.id);
+            const waitingChars = raceCharacters.filter(c => c.selected && !assignedIds.includes(c.id));
+
+            const container = document.getElementById('waitingCharacters');
+            container.innerHTML = waitingChars.map(char => `
+                <div class="waiting-character" draggable="true" data-id="${char.id}"
+                     ontouchstart="dragStart(event, ${char.id})"
+                     ontouchmove="dragMove(event)"
+                     ontouchend="dragEnd(event, ${char.id})">
+                    <div class="character-avatar">${char.animal}</div>
+                    <div class="character-name">${char.name}</div>
+                </div>
+            `).join('');
+        }
+
+        function updateRaceStartBtn() {
+            const allPlaced = startLineAssignments.every(c => c !== null);
+            document.getElementById('raceStartBtn').disabled = !allPlaced;
+        }
+
+        // レース開始演出
+        function startRaceCountdown() {
+            const overlay = document.getElementById('raceCountdownOverlay');
+            const text = document.getElementById('countdownText');
+            overlay.classList.add('show');
+
+            const sequence = ['いちについて〜', 'よーい', 'ドン！'];
+            let i = 0;
+
+            function showNext() {
+                if (i < sequence.length) {
+                    text.textContent = sequence[i];
+                    text.style.animation = 'none';
+                    text.offsetHeight; // reflow
+                    text.style.animation = 'countdownPop 0.5s ease-out';
+                    i++;
+                    setTimeout(showNext, 1000);
+                } else {
+                    overlay.classList.remove('show');
+                    startActualRace();
+                }
+            }
+
+            showNext();
+        }
+
+        function startActualRace() {
+            // ゴールをgoalListに変換してゲーム開始
+            currentMode = 'race';
+            const goals = raceGoals;
+            const participants = startLineAssignments.map(c => c.name);
+
+            // 既存のゲーム画面用にデータを設定
+            goalList = goals;
+
+            // 縦線の数はゴール数に合わせる
+            verticalLines = goals.length;
+
+            // 参加者名をボタンに使用
+            raceParticipantNames = participants;
+
+            showScreen('gameScreen');
+            setTimeout(() => {
+                drawAmidakuji(true);
+            }, 100);
+        }
+
+        // グローバル変数追加
+        let raceParticipantNames = [];
 
         function selectMode(mode) {
             currentMode = mode;
