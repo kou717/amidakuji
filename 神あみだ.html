@@ -61,30 +61,451 @@
         /* スプラッシュ */
         #splashScreen {
             display: flex; align-items: center; justify-content: center;
-            background: #fff; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 9999; transition: opacity 0.5s ease;
+            overflow: hidden;
         }
-        .logo-box {
-            width: 140px; height: 140px; border: 8px solid #333;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.5rem; font-weight: bold; color: #333;
-            background: #ffeb3b; box-shadow: 8px 8px 0px rgba(0,0,0,0.2);
-            animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        #splashScreen::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 50% 50%, rgba(255,215,0,0.1) 0%, transparent 50%);
+            animation: divineGlow 3s ease-in-out infinite;
         }
-        @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+        @keyframes divineGlow {
+            0%, 100% { transform: scale(0.8); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 1; }
+        }
+        .splash-logo {
+            display: flex; flex-direction: column; align-items: center; gap: 20px;
+            animation: logoAppear 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            z-index: 1;
+        }
+        @keyframes logoAppear {
+            0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        .logo-amida {
+            position: relative;
+            width: 120px;
+            height: 140px;
+        }
+        .logo-amida::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 180px;
+            height: 180px;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, rgba(255,215,0,0.3) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: haloGlow 2s ease-in-out infinite;
+        }
+        @keyframes haloGlow {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+            50% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+        }
+        /* あみだくじの縦線 */
+        .logo-line-v {
+            position: absolute;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, #ffd700 0%, #ffed4a 50%, #ffd700 100%);
+            border-radius: 2px;
+            box-shadow: 0 0 10px rgba(255,215,0,0.6);
+        }
+        .logo-line-v:nth-child(1) { left: 10px; }
+        .logo-line-v:nth-child(2) { left: 38px; }
+        .logo-line-v:nth-child(3) { left: 66px; }
+        .logo-line-v:nth-child(4) { left: 94px; }
+        /* あみだくじの横線 */
+        .logo-line-h {
+            position: absolute;
+            height: 4px;
+            background: linear-gradient(90deg, #ffd700, #fff5cc, #ffd700);
+            border-radius: 2px;
+            box-shadow: 0 0 8px rgba(255,215,0,0.5);
+            animation: lineGlow 1.5s ease-in-out infinite;
+        }
+        .logo-line-h:nth-child(5) { top: 25px; left: 10px; width: 32px; animation-delay: 0s; }
+        .logo-line-h:nth-child(6) { top: 50px; left: 38px; width: 32px; animation-delay: 0.2s; }
+        .logo-line-h:nth-child(7) { top: 75px; left: 66px; width: 32px; animation-delay: 0.4s; }
+        .logo-line-h:nth-child(8) { top: 100px; left: 10px; width: 32px; animation-delay: 0.6s; }
+        .logo-line-h:nth-child(9) { top: 55px; left: 10px; width: 32px; animation-delay: 0.3s; }
+        .logo-line-h:nth-child(10) { top: 85px; left: 38px; width: 32px; animation-delay: 0.5s; }
+        @keyframes lineGlow {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; box-shadow: 0 0 15px rgba(255,215,0,0.8); }
+        }
+        /* 神光パーティクル */
+        .logo-particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #ffd700;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #ffd700, 0 0 20px #ffd700;
+        }
+        .logo-particle:nth-child(11) { top: -10px; left: 20px; animation: floatParticle 2s ease-in-out infinite; }
+        .logo-particle:nth-child(12) { top: -5px; left: 60px; animation: floatParticle 2s ease-in-out infinite 0.3s; }
+        .logo-particle:nth-child(13) { top: -15px; left: 90px; animation: floatParticle 2s ease-in-out infinite 0.6s; }
+        @keyframes floatParticle {
+            0%, 100% { transform: translateY(0); opacity: 1; }
+            50% { transform: translateY(-10px); opacity: 0.5; }
+        }
+        .logo-title {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: #ffd700;
+            text-shadow: 0 0 20px rgba(255,215,0,0.5), 0 2px 4px rgba(0,0,0,0.3);
+            letter-spacing: 0.3em;
+            font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+        }
+        .logo-subtitle {
+            font-size: 0.85rem;
+            color: rgba(255,215,0,0.7);
+            letter-spacing: 0.2em;
+            margin-top: -10px;
+        }
 
         /* メニュー */
-        #menuScreen { flex-direction: column; justify-content: center; align-items: center; gap: 20px; padding-top: 70px; }
+        #menuScreen { flex-direction: column; justify-content: center; align-items: center; gap: 25px; padding-top: 70px; }
         .menu-card {
-            background: white; width: 85%; padding: 25px; border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05); cursor: pointer;
-            transition: transform 0.1s;
+            background: white; width: 85%; padding: 30px 25px; border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08); cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            position: relative;
+            overflow: hidden;
         }
-        .menu-card:active { transform: scale(0.96); }
-        .menu-icon { font-size: 3.5rem; display: block; margin-bottom: 10px; }
+        .menu-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            border-radius: 24px 24px 0 0;
+        }
+        .menu-card.normal-card::before {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+        .menu-card.race-card::before {
+            background: linear-gradient(90deg, #f093fb, #f5576c);
+        }
+        .menu-card:active { transform: scale(0.97); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+
+        /* メニューアイコン - ふつうのあみだ */
+        .menu-icon-wrapper {
+            width: 90px;
+            height: 90px;
+            margin: 0 auto 15px;
+            position: relative;
+        }
+        .amida-icon {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background: linear-gradient(135deg, #f8f9ff 0%, #e8ecff 100%);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        .amida-icon::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 60px;
+            height: 60px;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, rgba(102,126,234,0.2) 0%, transparent 70%);
+        }
+        .amida-v-line {
+            position: absolute;
+            width: 3px;
+            height: 60px;
+            top: 15px;
+            background: linear-gradient(180deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+        .amida-v-line:nth-child(1) { left: 20px; }
+        .amida-v-line:nth-child(2) { left: 43px; }
+        .amida-v-line:nth-child(3) { left: 66px; }
+        .amida-h-line {
+            position: absolute;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+        .amida-h-line:nth-child(4) { top: 28px; left: 20px; width: 26px; }
+        .amida-h-line:nth-child(5) { top: 45px; left: 43px; width: 26px; }
+        .amida-h-line:nth-child(6) { top: 58px; left: 20px; width: 26px; }
+        .amida-pointer {
+            position: absolute;
+            top: 8px;
+            left: 40px;
+            width: 10px;
+            height: 10px;
+            background: #667eea;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(102,126,234,0.5);
+            animation: pointerBounce 1.5s ease-in-out infinite;
+        }
+        @keyframes pointerBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(3px); }
+        }
+
+        /* メニューアイコン - 動物レース */
+        .race-icon {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe8ec 100%);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        .race-track {
+            position: absolute;
+            bottom: 12px;
+            left: 10px;
+            right: 10px;
+            height: 8px;
+            background: linear-gradient(90deg, #f5576c, #f093fb);
+            border-radius: 4px;
+        }
+        .race-track::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: repeating-linear-gradient(90deg, white 0px, white 6px, transparent 6px, transparent 12px);
+        }
+        .race-animal {
+            position: absolute;
+            font-size: 0;
+            animation: raceRun 2s ease-in-out infinite;
+        }
+        .race-animal::before {
+            font-size: 22px;
+        }
+        .race-animal.rabbit { bottom: 22px; left: 50px; animation-delay: 0s; }
+        .race-animal.rabbit::before { content: '🐰'; }
+        .race-animal.cat { bottom: 22px; left: 25px; animation-delay: 0.3s; }
+        .race-animal.cat::before { content: '🐱'; }
+        .race-animal.dog { bottom: 22px; left: 60px; animation-delay: 0.6s; }
+        .race-animal.dog::before { content: '🐶'; }
+        .race-flag {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+        }
+        .race-flag::before { content: '🏁'; }
+        @keyframes raceRun {
+            0%, 100% { transform: translateX(0) scaleX(1); }
+            25% { transform: translateX(3px) scaleX(0.95); }
+            50% { transform: translateX(0) scaleX(1); }
+            75% { transform: translateX(-3px) scaleX(0.95); }
+        }
+        .finish-sparkle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #f5576c;
+            border-radius: 50%;
+            animation: sparkle 1.5s ease-in-out infinite;
+        }
+        .finish-sparkle:nth-child(1) { top: 20px; right: 40px; animation-delay: 0s; }
+        .finish-sparkle:nth-child(2) { top: 35px; right: 45px; animation-delay: 0.3s; }
+        .finish-sparkle:nth-child(3) { top: 25px; right: 55px; animation-delay: 0.6s; }
+        @keyframes sparkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.3); }
+        }
 
         /* 設定画面 */
         #setupScreen { background: #f9f9f9; padding-top: 70px; }
+
+        /* =========================================
+           人数選択モーダル (3D回転カルーセル)
+           ========================================= */
+        #playerSelectOverlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        #playerSelectOverlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+        .player-select-card {
+            background: white;
+            width: 90%;
+            max-width: 360px;
+            border-radius: 28px;
+            padding: 35px 25px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #playerSelectOverlay.open .player-select-card {
+            transform: scale(1) translateY(0);
+        }
+        .player-select-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .player-select-subtitle {
+            font-size: 0.9rem;
+            color: #888;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .carousel-container {
+            position: relative;
+            height: 180px;
+            perspective: 1000px;
+            margin-bottom: 30px;
+        }
+        .carousel-track {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .carousel-item {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            left: 50%;
+            top: 50%;
+            margin-left: -50px;
+            margin-top: -50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f8f9ff 0%, #e8ecff 100%);
+            border-radius: 20px;
+            backface-visibility: hidden;
+            transition: opacity 0.3s, box-shadow 0.3s;
+        }
+        .carousel-item.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 10px 30px rgba(102,126,234,0.4);
+        }
+        .carousel-item .number {
+            font-size: 2.8rem;
+            font-weight: 900;
+            color: #667eea;
+            line-height: 1;
+        }
+        .carousel-item.active .number {
+            color: white;
+        }
+        .carousel-item .label {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 5px;
+        }
+        .carousel-item.active .label {
+            color: rgba(255,255,255,0.9);
+        }
+        .carousel-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            font-size: 1.5rem;
+            color: #667eea;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .carousel-nav:active {
+            transform: translateY(-50%) scale(0.95);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .carousel-nav.prev { left: 5px; }
+        .carousel-nav.next { right: 5px; }
+        .carousel-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 25px;
+        }
+        .carousel-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ddd;
+            transition: background 0.3s, transform 0.3s;
+        }
+        .carousel-dot.active {
+            background: #667eea;
+            transform: scale(1.3);
+        }
+        .player-select-btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 16px;
+            border: none;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(245,87,108,0.3);
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .player-select-btn:active {
+            transform: scale(0.98);
+            box-shadow: 0 4px 15px rgba(245,87,108,0.3);
+        }
+        .player-select-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: #f0f0f0;
+            font-size: 1.2rem;
+            color: #888;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .player-select-close:active { background: #e0e0e0; }
 
         /* =========================================
            グローバルヘッダー
@@ -1094,7 +1515,28 @@
 <body>
 
     <div id="splashScreen">
-        <div class="logo-box">あみだ<br>くじ</div>
+        <div class="splash-logo">
+            <div class="logo-amida">
+                <!-- 縦線 -->
+                <div class="logo-line-v"></div>
+                <div class="logo-line-v"></div>
+                <div class="logo-line-v"></div>
+                <div class="logo-line-v"></div>
+                <!-- 横線 -->
+                <div class="logo-line-h"></div>
+                <div class="logo-line-h"></div>
+                <div class="logo-line-h"></div>
+                <div class="logo-line-h"></div>
+                <div class="logo-line-h"></div>
+                <div class="logo-line-h"></div>
+                <!-- パーティクル -->
+                <div class="logo-particle"></div>
+                <div class="logo-particle"></div>
+                <div class="logo-particle"></div>
+            </div>
+            <div class="logo-title">神あみだ</div>
+            <div class="logo-subtitle">DIVINE LOTTERY</div>
+        </div>
     </div>
 
     <!-- グローバルヘッダー -->
@@ -1160,6 +1602,26 @@
         </div>
     </div>
 
+    <!-- 人数選択モーダル -->
+    <div id="playerSelectOverlay" onclick="closePlayerSelect(event)">
+        <div class="player-select-card" onclick="event.stopPropagation()">
+            <button class="player-select-close" onclick="closePlayerSelect()">&times;</button>
+            <div class="player-select-title">何人で遊びますか？</div>
+            <div class="player-select-subtitle">左右にスワイプして選択</div>
+            <div class="carousel-container">
+                <button class="carousel-nav prev" onclick="carouselPrev()">&lt;</button>
+                <div class="carousel-track" id="carouselTrack">
+                    <!-- JavaScriptで動的に生成 -->
+                </div>
+                <button class="carousel-nav next" onclick="carouselNext()">&gt;</button>
+            </div>
+            <div class="carousel-indicator" id="carouselIndicator">
+                <!-- JavaScriptで動的に生成 -->
+            </div>
+            <button class="player-select-btn" onclick="confirmPlayerCount()">この人数でスタート！</button>
+        </div>
+    </div>
+
     <div id="resultModalOverlay">
         <div class="result-card">
             <div class="result-title">結果は...</div>
@@ -1175,15 +1637,36 @@
     </div>
 
     <div id="menuScreen" class="screen">
-        <div class="menu-card" onclick="selectMode('normal')">
-            <span class="menu-icon">🎯</span>
-            <h3 style="margin:0;">ふつうのあみだ</h3>
-            <p style="margin:5px 0 0; color:#888;">短くサクサク決める</p>
+        <div class="menu-card normal-card" onclick="selectMode('normal')">
+            <div class="menu-icon-wrapper">
+                <div class="amida-icon">
+                    <div class="amida-v-line"></div>
+                    <div class="amida-v-line"></div>
+                    <div class="amida-v-line"></div>
+                    <div class="amida-h-line"></div>
+                    <div class="amida-h-line"></div>
+                    <div class="amida-h-line"></div>
+                    <div class="amida-pointer"></div>
+                </div>
+            </div>
+            <h3 style="margin:0; color:#333;">ふつうのあみだ</h3>
+            <p style="margin:8px 0 0; color:#888; font-size:0.9rem;">短くサクサク決める</p>
         </div>
-        <div class="menu-card" onclick="selectMode('race')">
-            <span class="menu-icon">🏁</span>
-            <h3 style="margin:0;">動物レース</h3>
-            <p style="margin:5px 0 0; color:#888;">長〜いコースで競争</p>
+        <div class="menu-card race-card" onclick="openPlayerSelect()">
+            <div class="menu-icon-wrapper">
+                <div class="race-icon">
+                    <div class="finish-sparkle"></div>
+                    <div class="finish-sparkle"></div>
+                    <div class="finish-sparkle"></div>
+                    <div class="race-flag"></div>
+                    <div class="race-animal rabbit"></div>
+                    <div class="race-animal cat"></div>
+                    <div class="race-animal dog"></div>
+                    <div class="race-track"></div>
+                </div>
+            </div>
+            <h3 style="margin:0; color:#333;">動物レース</h3>
+            <p style="margin:8px 0 0; color:#888; font-size:0.9rem;">長〜いコースで競争</p>
         </div>
     </div>
 
@@ -2182,6 +2665,135 @@
             activeTemplateSub = null;
             updateActiveTemplateBadge();
             showScreen('menuScreen', false);
+        }
+
+        // =========================================
+        // 人数選択カルーセル
+        // =========================================
+        const playerCountOptions = [2, 3, 4, 5, 6, 7, 8];
+        let currentCarouselIndex = 1; // デフォルトは3人（インデックス1）
+        let carouselTouchStartX = 0;
+        let carouselTouchEndX = 0;
+
+        function openPlayerSelect() {
+            currentCarouselIndex = 1; // 3人にリセット
+            initCarousel();
+            document.getElementById('playerSelectOverlay').classList.add('open');
+        }
+
+        function closePlayerSelect(event) {
+            if (event && event.target !== event.currentTarget) return;
+            document.getElementById('playerSelectOverlay').classList.remove('open');
+        }
+
+        function initCarousel() {
+            const track = document.getElementById('carouselTrack');
+            const indicator = document.getElementById('carouselIndicator');
+
+            // カルーセルアイテム生成
+            track.innerHTML = '';
+            playerCountOptions.forEach((count, index) => {
+                const item = document.createElement('div');
+                item.className = 'carousel-item' + (index === currentCarouselIndex ? ' active' : '');
+                item.innerHTML = `<span class="number">${count}</span><span class="label">人</span>`;
+                item.onclick = () => goToCarouselItem(index);
+                track.appendChild(item);
+            });
+
+            // インジケーター生成
+            indicator.innerHTML = '';
+            playerCountOptions.forEach((_, index) => {
+                const dot = document.createElement('div');
+                dot.className = 'carousel-dot' + (index === currentCarouselIndex ? ' active' : '');
+                dot.onclick = () => goToCarouselItem(index);
+                indicator.appendChild(dot);
+            });
+
+            updateCarouselPosition();
+
+            // スワイプ対応
+            track.addEventListener('touchstart', handleCarouselTouchStart, { passive: true });
+            track.addEventListener('touchend', handleCarouselTouchEnd, { passive: true });
+        }
+
+        function handleCarouselTouchStart(e) {
+            carouselTouchStartX = e.touches[0].clientX;
+        }
+
+        function handleCarouselTouchEnd(e) {
+            carouselTouchEndX = e.changedTouches[0].clientX;
+            const diff = carouselTouchStartX - carouselTouchEndX;
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) {
+                    carouselNext();
+                } else {
+                    carouselPrev();
+                }
+            }
+        }
+
+        function carouselPrev() {
+            if (currentCarouselIndex > 0) {
+                currentCarouselIndex--;
+                updateCarouselPosition();
+            }
+        }
+
+        function carouselNext() {
+            if (currentCarouselIndex < playerCountOptions.length - 1) {
+                currentCarouselIndex++;
+                updateCarouselPosition();
+            }
+        }
+
+        function goToCarouselItem(index) {
+            currentCarouselIndex = index;
+            updateCarouselPosition();
+        }
+
+        function updateCarouselPosition() {
+            const track = document.getElementById('carouselTrack');
+            const items = track.querySelectorAll('.carousel-item');
+            const dots = document.querySelectorAll('.carousel-dot');
+            const angleStep = 360 / playerCountOptions.length;
+            const radius = 140;
+
+            items.forEach((item, index) => {
+                const angle = (index - currentCarouselIndex) * angleStep;
+                const rad = angle * Math.PI / 180;
+                const x = Math.sin(rad) * radius;
+                const z = Math.cos(rad) * radius - radius;
+                const scale = (z + radius * 2) / (radius * 2) * 0.5 + 0.5;
+                const opacity = index === currentCarouselIndex ? 1 : 0.5;
+
+                item.style.transform = `translateX(${x}px) translateZ(${z}px) scale(${scale})`;
+                item.style.opacity = opacity;
+                item.style.zIndex = Math.round(scale * 10);
+                item.classList.toggle('active', index === currentCarouselIndex);
+            });
+
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentCarouselIndex);
+            });
+        }
+
+        function confirmPlayerCount() {
+            const playerCount = playerCountOptions[currentCarouselIndex];
+            closePlayerSelect();
+
+            // race モードで選択した人数分のスロットを作成
+            currentMode = 'race';
+            document.getElementById('listTitle').innerText = '参加者を入力';
+            document.getElementById('templateTriggerBtn').style.display = 'none';
+
+            const list = document.getElementById('goalList');
+            list.innerHTML = '';
+
+            for (let i = 0; i < playerCount; i++) {
+                addGoalItem();
+            }
+
+            showScreen('setupScreen');
         }
 
         function selectMode(mode) {
