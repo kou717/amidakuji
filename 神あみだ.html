@@ -4056,11 +4056,14 @@
 
             columnWidth = logicalWidth / count;
 
+            // レースモード用にドロップゾーン分のスペースを確保
+            const raceTopMargin = 160;
+
             let baseSteps = 50;
             const extraSteps = (count - 2) * 5;
             const steps = baseSteps + extraSteps;
 
-            const ladderHeight = logicalHeight - topMargin - 250;
+            const ladderHeight = logicalHeight - raceTopMargin - 250;
             stepHeight = ladderHeight / steps;
 
             // レースモードではカーテンなし
@@ -4088,7 +4091,7 @@
                 players.push({
                     id: i,
                     xIdx: i,
-                    y: topMargin,
+                    y: raceTopMargin,
                     nextXIdx: undefined,
                     moveProgress: 0,
                     state: 'idle',
@@ -4108,7 +4111,7 @@
 
                     char: characters[i],
                     color: colors[i],
-                    trail: [{x: startX, y: topMargin}, {x: startX, y: topMargin}]
+                    trail: [{x: startX, y: raceTopMargin}, {x: startX, y: raceTopMargin}]
                 });
             }
 
@@ -4119,8 +4122,8 @@
             raceBtn.style.display = 'block';
             raceBtn.disabled = true; // 配置完了まで無効
 
-            // ドロップゾーンを生成
-            createDropZones(count, columnWidth, topMargin);
+            // ドロップゾーンを生成（raceTopMarginの位置に）
+            createDropZones(count, columnWidth, raceTopMargin);
 
             // 早送りボタンを表示（速度リセット）
             resetSpeed();
@@ -4179,7 +4182,7 @@
         }
 
         // ドロップゾーンを生成
-        function createDropZones(count, columnWidth, topMargin) {
+        function createDropZones(count, columnWidth, startY) {
             const dropLayer = document.getElementById('dropZoneLayer');
             dropLayer.innerHTML = '';
             dropLayer.style.cssText = `
@@ -4190,7 +4193,9 @@
                 pointer-events: none;
             `;
 
-            const zoneHeight = 70;
+            const zoneHeight = 80;
+            // スタートラインの上に配置（少し余白を取る）
+            const zoneTop = startY - zoneHeight - 15;
 
             for (let i = 0; i < count; i++) {
                 const zone = document.createElement('div');
@@ -4198,7 +4203,7 @@
                 zone.dataset.index = i;
                 zone.style.cssText = `
                     left: ${(i * columnWidth) + (columnWidth / 2) - 35}px;
-                    top: ${topMargin - zoneHeight - 10}px;
+                    top: ${zoneTop}px;
                     width: 70px;
                     height: ${zoneHeight}px;
                     pointer-events: auto;
