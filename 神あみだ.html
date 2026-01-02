@@ -1356,6 +1356,140 @@
             padding: 15px 50px; border-radius: 50px; font-size: 1.4rem; font-weight: bold;
             box-shadow: 0 10px 25px rgba(255, 159, 67, 0.4); z-index: 200; cursor: pointer;
         }
+        #raceBtn:disabled {
+            background: #ccc;
+            box-shadow: none;
+        }
+
+        /* キャラクター配置UI */
+        #charPlacementUI {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            z-index: 300;
+            display: none;
+            max-width: 90%;
+        }
+        #charPlacementUI.show { display: block; }
+        .placement-title {
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .placement-chars {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        .placement-char {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            cursor: grab;
+            touch-action: none;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .placement-char:active {
+            cursor: grabbing;
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+        .placement-char.placed {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        .placement-char .char-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        .placement-char .char-name {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #333;
+            max-width: 60px;
+            text-align: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* スタート位置のドロップゾーン */
+        .start-drop-zone {
+            position: absolute;
+            top: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 3px dashed #e74c3c;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.9);
+            transition: background 0.2s, border-color 0.2s, transform 0.2s;
+            z-index: 50;
+        }
+        .start-drop-zone.highlight {
+            background: rgba(231,76,60,0.2);
+            border-color: #c0392b;
+            transform: scale(1.05);
+        }
+        .start-drop-zone.occupied {
+            border-style: solid;
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe8ec 100%);
+        }
+        .start-drop-zone .zone-label {
+            font-size: 0.7rem;
+            color: #888;
+        }
+        .start-drop-zone .zone-char {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .start-drop-zone .zone-char .char-avatar {
+            width: 40px;
+            height: 40px;
+            font-size: 1.4rem;
+        }
+        .start-drop-zone .zone-char .char-name {
+            font-size: 0.7rem;
+        }
+
+        /* ドラッグ中のゴースト */
+        .drag-ghost {
+            position: fixed;
+            z-index: 9999;
+            pointer-events: none;
+            opacity: 0.9;
+            transform: scale(1.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
 
         #fastForwardBtn {
             position: fixed; bottom: 40px; right: 20px;
@@ -2468,12 +2602,21 @@
 
     <div id="gameScreen" class="screen">
         <div id="buttonLayer"></div>
+        <div id="dropZoneLayer"></div>
 
         <canvas id="amidaCanvas"></canvas>
         <div id="tankLayer"></div>
         <div id="curtain">?</div>
-        <button id="raceBtn" onclick="startRaceRun()">GO!</button>
+        <button id="raceBtn" onclick="startRaceRun()" disabled>GO!</button>
         <button id="fastForwardBtn">⏩</button>
+
+        <!-- キャラクター配置UI -->
+        <div id="charPlacementUI">
+            <div class="placement-title">キャラクターをスタート位置にドラッグ！</div>
+            <div class="placement-chars" id="placementChars">
+                <!-- JavaScriptで動的に生成 -->
+            </div>
+        </div>
     </div>
 
     <!-- カスタム確認ダイアログ（最前面に配置） -->
@@ -3863,7 +4006,7 @@
             document.getElementById('raceStartSetupBtn').disabled = filledCount < minCount;
         }
 
-        // スタートライン配置画面
+        // スタートライン配置（ゲーム画面内で実行）
         function goToStartLineScreen() {
             const selectedChars = raceCharacters.filter(c => c.selected);
             const goalInputs = document.querySelectorAll('.race-goal-input');
@@ -3872,167 +4015,258 @@
                 .map(input => input.value.trim())
                 .filter(v => v);
 
+            // ゴールをgoalListに設定
+            goalList = raceGoals;
+
+            // 配置用の配列を初期化
             startLineAssignments = new Array(selectedChars.length).fill(null);
+            raceSelectedChars = selectedChars;
 
-            renderWaitingCharacters(selectedChars);
-            renderStartLines(selectedChars.length);
-            updateRaceStartBtn();
-
-            showScreen('raceStartScreen');
+            // ゲーム画面に遷移してあみだくじを描画
+            showScreen('gameScreen');
+            setTimeout(() => {
+                drawAmidakuji(true);
+            }, 100);
         }
 
-        function renderWaitingCharacters(chars) {
-            const container = document.getElementById('waitingCharacters');
-            container.innerHTML = chars.map(char => `
-                <div class="waiting-character" draggable="true" data-id="${char.id}"
-                     ontouchstart="dragStart(event, ${char.id})"
-                     ontouchmove="dragMove(event)"
-                     ontouchend="dragEnd(event, ${char.id})">
-                    <div class="character-avatar">${char.animal}</div>
-                    <div class="character-name">${char.name}</div>
-                </div>
-            `).join('');
+        let raceSelectedChars = [];
+        let placementDragId = null;
+        let placementGhost = null;
+
+        // キャラクター配置UIを表示
+        function showCharPlacementUI() {
+            const container = document.getElementById('placementChars');
+            container.innerHTML = raceSelectedChars.map(char => {
+                const isPlaced = startLineAssignments.includes(char);
+                return `
+                    <div class="placement-char ${isPlaced ? 'placed' : ''}" data-id="${char.id}">
+                        <div class="char-avatar">${char.animal}</div>
+                        <div class="char-name">${char.name}</div>
+                    </div>
+                `;
+            }).join('');
+
+            // イベントリスナーを追加
+            container.querySelectorAll('.placement-char:not(.placed)').forEach(el => {
+                const id = parseInt(el.dataset.id);
+
+                // タッチイベント
+                el.addEventListener('touchstart', (e) => placementDragStart(e, id, el), { passive: false });
+                el.addEventListener('touchmove', (e) => placementDragMove(e), { passive: false });
+                el.addEventListener('touchend', (e) => placementDragEnd(e, id));
+
+                // マウスイベント
+                el.addEventListener('mousedown', (e) => placementMouseStart(e, id, el));
+            });
+
+            document.getElementById('charPlacementUI').classList.add('show');
         }
 
-        function renderStartLines(count) {
-            const area = document.getElementById('startLineArea');
-            area.innerHTML = '';
+        function hideCharPlacementUI() {
+            document.getElementById('charPlacementUI').classList.remove('show');
+        }
+
+        // ドロップゾーンを生成
+        function createDropZones(count, columnWidth, topMargin) {
+            const dropLayer = document.getElementById('dropZoneLayer');
+            dropLayer.innerHTML = '';
+            dropLayer.style.cssText = `
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                pointer-events: none;
+            `;
+
+            const zoneHeight = 70;
 
             for (let i = 0; i < count; i++) {
-                const line = document.createElement('div');
-                line.className = 'start-line';
-                line.dataset.index = i;
-                line.innerHTML = `<span class="start-line-label">レーン ${i + 1}</span>`;
-                area.appendChild(line);
+                const zone = document.createElement('div');
+                zone.className = 'start-drop-zone';
+                zone.dataset.index = i;
+                zone.style.cssText = `
+                    left: ${(i * columnWidth) + (columnWidth / 2) - 35}px;
+                    top: ${topMargin - zoneHeight - 10}px;
+                    width: 70px;
+                    height: ${zoneHeight}px;
+                    pointer-events: auto;
+                `;
+                zone.innerHTML = `<span class="zone-label">レーン${i + 1}</span>`;
+                dropLayer.appendChild(zone);
             }
         }
 
-        let draggedCharId = null;
-        let dragGhost = null;
-
-        function dragStart(event, id) {
-            draggedCharId = id;
-            const touch = event.touches[0];
-
-            // ドラッグ中の見た目を作成
-            const char = raceCharacters.find(c => c.id === id);
-            dragGhost = document.createElement('div');
-            dragGhost.className = 'waiting-character';
-            dragGhost.style.cssText = `
-                position: fixed;
-                z-index: 9999;
-                pointer-events: none;
-                opacity: 0.9;
-                transform: scale(1.1);
-            `;
-            dragGhost.innerHTML = `
-                <div class="character-avatar">${char.animal}</div>
-                <div class="character-name">${char.name}</div>
-            `;
-            document.body.appendChild(dragGhost);
-            updateGhostPosition(touch.clientX, touch.clientY);
-
-            event.currentTarget.style.opacity = '0.3';
+        // ドラッグ開始（タッチ）
+        function placementDragStart(e, id, el) {
+            e.preventDefault();
+            placementDragId = id;
+            const touch = e.touches[0];
+            createPlacementGhost(id, touch.clientX, touch.clientY);
+            el.style.opacity = '0.3';
+            highlightDropZones(true);
         }
 
-        function dragMove(event) {
-            if (!dragGhost) return;
-            const touch = event.touches[0];
-            updateGhostPosition(touch.clientX, touch.clientY);
+        // ドラッグ移動（タッチ）
+        function placementDragMove(e) {
+            if (!placementGhost) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            updatePlacementGhost(touch.clientX, touch.clientY);
+            checkDropZoneHover(touch.clientX, touch.clientY);
         }
 
-        function updateGhostPosition(x, y) {
-            if (dragGhost) {
-                dragGhost.style.left = (x - 40) + 'px';
-                dragGhost.style.top = (y - 40) + 'px';
+        // ドラッグ終了（タッチ）
+        function placementDragEnd(e, id) {
+            if (placementGhost) {
+                const touch = e.changedTouches[0];
+                const dropZone = findDropZoneAt(touch.clientX, touch.clientY);
+                if (dropZone) {
+                    const zoneIndex = parseInt(dropZone.dataset.index);
+                    placeCharacterInZone(id, zoneIndex);
+                }
+                placementGhost.remove();
+                placementGhost = null;
             }
-        }
-
-        function dragEnd(event, id) {
-            if (dragGhost) {
-                dragGhost.remove();
-                dragGhost = null;
-            }
-
-            const touch = event.changedTouches[0];
-            const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
-            const startLine = dropTarget?.closest('.start-line');
-
-            if (startLine) {
-                const lineIndex = parseInt(startLine.dataset.index);
-                placeCharacterOnLine(id, lineIndex);
-            }
+            highlightDropZones(false);
+            placementDragId = null;
 
             // 元の要素を戻す
-            const waitingItems = document.querySelectorAll('.waiting-character');
-            waitingItems.forEach(item => item.style.opacity = '1');
-
-            draggedCharId = null;
-            updateRaceStartBtn();
+            document.querySelectorAll('.placement-char').forEach(el => el.style.opacity = '1');
+            showCharPlacementUI(); // UIを更新
+            updateDropZoneDisplay();
+            checkAllPlaced();
         }
 
-        function placeCharacterOnLine(charId, lineIndex) {
+        // マウスドラッグ
+        function placementMouseStart(e, id, el) {
+            placementDragId = id;
+            createPlacementGhost(id, e.clientX, e.clientY);
+            el.style.opacity = '0.3';
+            highlightDropZones(true);
+
+            const moveHandler = (e) => {
+                if (!placementGhost) return;
+                updatePlacementGhost(e.clientX, e.clientY);
+                checkDropZoneHover(e.clientX, e.clientY);
+            };
+
+            const upHandler = (e) => {
+                if (placementGhost) {
+                    const dropZone = findDropZoneAt(e.clientX, e.clientY);
+                    if (dropZone) {
+                        const zoneIndex = parseInt(dropZone.dataset.index);
+                        placeCharacterInZone(id, zoneIndex);
+                    }
+                    placementGhost.remove();
+                    placementGhost = null;
+                }
+                highlightDropZones(false);
+                placementDragId = null;
+
+                document.querySelectorAll('.placement-char').forEach(el => el.style.opacity = '1');
+                showCharPlacementUI();
+                updateDropZoneDisplay();
+                checkAllPlaced();
+
+                document.removeEventListener('mousemove', moveHandler);
+                document.removeEventListener('mouseup', upHandler);
+            };
+
+            document.addEventListener('mousemove', moveHandler);
+            document.addEventListener('mouseup', upHandler);
+        }
+
+        function createPlacementGhost(id, x, y) {
+            const char = raceCharacters.find(c => c.id === id);
+            placementGhost = document.createElement('div');
+            placementGhost.className = 'drag-ghost';
+            placementGhost.innerHTML = `
+                <div class="char-avatar" style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#ffecd2,#fcb69f);display:flex;align-items:center;justify-content:center;font-size:1.8rem;">${char.animal}</div>
+                <div class="char-name" style="font-size:0.8rem;font-weight:bold;margin-top:5px;">${char.name}</div>
+            `;
+            document.body.appendChild(placementGhost);
+            updatePlacementGhost(x, y);
+        }
+
+        function updatePlacementGhost(x, y) {
+            if (placementGhost) {
+                placementGhost.style.left = (x - 40) + 'px';
+                placementGhost.style.top = (y - 50) + 'px';
+            }
+        }
+
+        function highlightDropZones(show) {
+            document.querySelectorAll('.start-drop-zone').forEach(zone => {
+                if (show && !zone.classList.contains('occupied')) {
+                    zone.style.borderColor = '#e74c3c';
+                } else {
+                    zone.style.borderColor = '';
+                }
+            });
+        }
+
+        function checkDropZoneHover(x, y) {
+            document.querySelectorAll('.start-drop-zone').forEach(zone => {
+                zone.classList.remove('highlight');
+            });
+            const zone = findDropZoneAt(x, y);
+            if (zone) {
+                zone.classList.add('highlight');
+            }
+        }
+
+        function findDropZoneAt(x, y) {
+            const elements = document.elementsFromPoint(x, y);
+            return elements.find(el => el.classList.contains('start-drop-zone'));
+        }
+
+        function placeCharacterInZone(charId, zoneIndex) {
             const char = raceCharacters.find(c => c.id === charId);
             if (!char) return;
 
-            // すでにどこかにあれば外す
+            // すでに他の場所にいたら外す
             const prevIndex = startLineAssignments.indexOf(char);
             if (prevIndex !== -1) {
                 startLineAssignments[prevIndex] = null;
             }
 
-            // もし他のキャラがいたら入れ替え
-            const existingChar = startLineAssignments[lineIndex];
-            if (existingChar) {
-                if (prevIndex !== -1) {
-                    startLineAssignments[prevIndex] = existingChar;
-                } else {
-                    // 待機エリアに戻す
-                }
+            // そのゾーンに既にキャラがいたら入れ替え
+            const existingChar = startLineAssignments[zoneIndex];
+            if (existingChar && prevIndex !== -1) {
+                startLineAssignments[prevIndex] = existingChar;
             }
 
-            startLineAssignments[lineIndex] = char;
-            renderStartLinesWithCharacters();
-            renderWaitingArea();
+            startLineAssignments[zoneIndex] = char;
         }
 
-        function renderStartLinesWithCharacters() {
-            const lines = document.querySelectorAll('.start-line');
-            lines.forEach((line, i) => {
+        // ドロップゾーンの表示を更新
+        function updateDropZoneDisplay() {
+            const zones = document.querySelectorAll('.start-drop-zone');
+            zones.forEach((zone, i) => {
                 const char = startLineAssignments[i];
                 if (char) {
-                    line.classList.add('occupied');
-                    line.innerHTML = `
-                        <span class="start-line-label">レーン ${i + 1}</span>
-                        <div class="character-avatar">${char.animal}</div>
-                        <div class="character-name">${char.name}</div>
+                    zone.classList.add('occupied');
+                    zone.innerHTML = `
+                        <div class="zone-char">
+                            <div class="char-avatar" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#ffecd2,#fcb69f);display:flex;align-items:center;justify-content:center;font-size:1.4rem;">${char.animal}</div>
+                            <div class="char-name" style="font-size:0.7rem;font-weight:bold;margin-top:2px;">${char.name}</div>
+                        </div>
                     `;
                 } else {
-                    line.classList.remove('occupied');
-                    line.innerHTML = `<span class="start-line-label">レーン ${i + 1}</span>`;
+                    zone.classList.remove('occupied');
+                    zone.innerHTML = `<span class="zone-label">レーン${i + 1}</span>`;
                 }
             });
         }
 
-        function renderWaitingArea() {
-            const assignedIds = startLineAssignments.filter(c => c).map(c => c.id);
-            const waitingChars = raceCharacters.filter(c => c.selected && !assignedIds.includes(c.id));
-
-            const container = document.getElementById('waitingCharacters');
-            container.innerHTML = waitingChars.map(char => `
-                <div class="waiting-character" draggable="true" data-id="${char.id}"
-                     ontouchstart="dragStart(event, ${char.id})"
-                     ontouchmove="dragMove(event)"
-                     ontouchend="dragEnd(event, ${char.id})">
-                    <div class="character-avatar">${char.animal}</div>
-                    <div class="character-name">${char.name}</div>
-                </div>
-            `).join('');
-        }
-
-        function updateRaceStartBtn() {
+        // 全員配置されたかチェック
+        function checkAllPlaced() {
             const allPlaced = startLineAssignments.every(c => c !== null);
-            document.getElementById('raceStartBtn').disabled = !allPlaced;
+            document.getElementById('raceBtn').disabled = !allPlaced;
+
+            if (allPlaced) {
+                hideCharPlacementUI();
+            }
         }
 
         // レース開始演出
@@ -4054,32 +4288,11 @@
                     setTimeout(showNext, 1000);
                 } else {
                     overlay.classList.remove('show');
-                    startActualRace();
+                    actuallyStartRace();
                 }
             }
 
             showNext();
-        }
-
-        function startActualRace() {
-            // ゴールをgoalListに変換してゲーム開始
-            currentMode = 'race';
-            const goals = raceGoals;
-            const participants = startLineAssignments.map(c => c.name);
-
-            // 既存のゲーム画面用にデータを設定
-            goalList = goals;
-
-            // 縦線の数はゴール数に合わせる
-            verticalLines = goals.length;
-
-            // 参加者名をボタンに使用
-            raceParticipantNames = participants;
-
-            showScreen('gameScreen');
-            setTimeout(() => {
-                drawAmidakuji(true);
-            }, 100);
         }
 
         // グローバル変数追加
@@ -5182,8 +5395,15 @@
             const raceBtn = document.getElementById('raceBtn');
             if (currentMode === 'normal') {
                 raceBtn.style.display = 'none';
+                // ドロップゾーンをクリア
+                document.getElementById('dropZoneLayer').innerHTML = '';
+                hideCharPlacementUI();
             } else {
                 raceBtn.style.display = 'block';
+                raceBtn.disabled = true; // 配置完了まで無効
+
+                // ドロップゾーンを生成
+                createDropZones(count, columnWidth, topMargin);
             }
 
             // 早送りボタンを表示（速度リセット）
@@ -5195,6 +5415,13 @@
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'instant' });
             setTimeout(() => {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                // 動物レースモードの場合、スクロール完了後にキャラクター配置UIを表示
+                if (currentMode === 'race' && raceSelectedChars.length > 0) {
+                    setTimeout(() => {
+                        showCharPlacementUI();
+                    }, 500);
+                }
             }, 800);
         }
 
@@ -6123,6 +6350,24 @@
 
         function startRaceRun() {
             if (isAnimating) return;
+
+            // キャラクターとプレイヤーをリンク
+            if (raceSelectedChars.length > 0) {
+                for (let i = 0; i < startLineAssignments.length; i++) {
+                    const charObj = startLineAssignments[i];
+                    if (charObj && players[i]) {
+                        // charは絵文字表示用、charInfoは完全なキャラクター情報
+                        players[i].char = charObj.animal;
+                        players[i].charInfo = charObj;
+                    }
+                }
+            }
+
+            // カウントダウン演出
+            startRaceCountdown();
+        }
+
+        function actuallyStartRace() {
             document.getElementById('raceBtn').style.display = 'none';
             players.forEach(p => p.state = 'moving');
             isAnimating = true;
@@ -7255,7 +7500,9 @@
                     msg += "🏁 結果 🏁\n";
                     players.forEach(p => {
                         let resultName = goalLabels[p.xIdx];
-                        msg += `${p.char} → ${resultName}\n`;
+                        // キャラクター名があれば表示
+                        const charDisplay = p.charInfo ? `${p.char}${p.charInfo.name}` : p.char;
+                        msg += `${charDisplay} → ${resultName}\n`;
                     });
                     msg = msg.replace(/\n/g, '<br>');
                     playFanfare();
@@ -7449,7 +7696,9 @@
                 shareText += '🏁 レース結果 🏁\n';
                 players.forEach(p => {
                     let resultName = goalLabels[p.xIdx];
-                    shareText += `${p.char} → ${resultName}\n`;
+                    // キャラクター名があれば表示
+                    const charDisplay = p.charInfo ? `${p.char}${p.charInfo.name}` : p.char;
+                    shareText += `${charDisplay} → ${resultName}\n`;
                 });
             } else {
                 players.filter(p => p.state === 'finished').forEach((p, i) => {
