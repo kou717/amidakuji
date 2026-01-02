@@ -4025,8 +4025,120 @@
             // ゲーム画面に遷移してあみだくじを描画
             showScreen('gameScreen');
             setTimeout(() => {
-                drawAmidakuji(true);
+                drawAmidakujiForRace();
             }, 100);
+        }
+
+        // レースモード用のあみだくじ描画関数
+        function drawAmidakujiForRace() {
+            const count = goalList.length;
+            if (count < 2) return;
+
+            currentMode = 'race';
+            startedPlayerCount = 0;
+
+            // BGM開始
+            startBgm();
+
+            dpr = window.devicePixelRatio || 1;
+            let cssWidth = document.body.clientWidth;
+            let cssHeight = window.innerHeight * 3.0;
+
+            canvas.width = cssWidth * dpr;
+            canvas.height = cssHeight * dpr;
+            canvas.style.width = cssWidth + 'px';
+            canvas.style.height = cssHeight + 'px';
+
+            ctx.scale(dpr, dpr);
+
+            let logicalWidth = cssWidth;
+            let logicalHeight = cssHeight;
+
+            columnWidth = logicalWidth / count;
+
+            let baseSteps = 50;
+            const extraSteps = (count - 2) * 5;
+            const steps = baseSteps + extraSteps;
+
+            const ladderHeight = logicalHeight - topMargin - 250;
+            stepHeight = ladderHeight / steps;
+
+            // レースモードではカーテンなし
+            const curtain = document.getElementById('curtain');
+            curtain.style.opacity = 0;
+
+            createLadders(count, steps);
+
+            players = [];
+
+            // ゴールラベルをシャッフル
+            shuffledGoalLabels = shuffleArray([...goalList]);
+            goalLabels = shuffledGoalLabels;
+
+            const FIXED_MAX_COLUMNS = 8;
+            const rawSize = Math.floor((window.innerWidth - 10) / FIXED_MAX_COLUMNS);
+            const calculatedSize = Math.floor(rawSize * 0.9);
+
+            const btnLayer = document.getElementById('buttonLayer');
+            btnLayer.innerHTML = '';
+
+            for(let i=0; i<count; i++) {
+                let startX = (i * columnWidth) + (columnWidth / 2);
+
+                players.push({
+                    id: i,
+                    xIdx: i,
+                    y: topMargin,
+                    nextXIdx: undefined,
+                    moveProgress: 0,
+                    state: 'idle',
+                    hasTurnedAtLevel: -1,
+                    scale: 0,
+                    currentSpeed: 6.3,
+
+                    sliding: false,
+                    slideTargetX: 0,
+                    slideTargetY: 0,
+                    slideStartX: 0,
+                    slideStartY: 0,
+
+                    reactedEndpoints: new Set(),
+                    cameFromCurve: false,
+                    curveExitY: undefined,
+
+                    char: characters[i],
+                    color: colors[i],
+                    trail: [{x: startX, y: topMargin}, {x: startX, y: topMargin}]
+                });
+            }
+
+            // タンクを生成
+            createTanks(count, logicalHeight);
+
+            const raceBtn = document.getElementById('raceBtn');
+            raceBtn.style.display = 'block';
+            raceBtn.disabled = true; // 配置完了まで無効
+
+            // ドロップゾーンを生成
+            createDropZones(count, columnWidth, topMargin);
+
+            // 早送りボタンを表示（速度リセット）
+            resetSpeed();
+            showFastForwardBtn();
+
+            drawFrame();
+
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'instant' });
+            setTimeout(() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                // キャラクター配置UIを表示
+                if (raceSelectedChars.length > 0) {
+                    setTimeout(() => {
+                        showCharPlacementUI();
+                    }, 500);
+                }
+            }, 800);
         }
 
         let raceSelectedChars = [];
