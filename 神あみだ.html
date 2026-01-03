@@ -1531,6 +1531,35 @@
             z-index: 100;
         }
 
+        /* チェッカーフラッグ柄のスタートライン */
+        #startLine {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 20px;
+            background: repeating-linear-gradient(
+                90deg,
+                #000 0px, #000 10px,
+                #fff 10px, #fff 20px
+            );
+            background-size: 20px 10px;
+            background-position: 0 0, 10px 10px;
+            z-index: 50;
+        }
+        #startLine::after {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: repeating-linear-gradient(
+                90deg,
+                #fff 0px, #fff 10px,
+                #000 10px, #000 20px
+            );
+        }
+
         #fastForwardBtn {
             position: fixed; bottom: 40px; right: 20px;
             min-width: 70px; height: 40px; border-radius: 20px;
@@ -2644,6 +2673,7 @@
         <div id="buttonLayer"></div>
         <div id="dropZoneLayer"></div>
         <div id="runningCharsLayer"></div>
+        <div id="startLine" style="display:none;"></div>
 
         <canvas id="amidaCanvas"></canvas>
         <div id="tankLayer"></div>
@@ -4175,8 +4205,13 @@
             raceBtn.style.display = 'block';
             raceBtn.disabled = true; // 配置完了まで無効
 
-            // ドロップゾーンを生成（raceTopMarginの位置に）
-            createDropZones(count, columnWidth, raceTopMargin);
+            // スタートラインを表示（raceTopMarginの位置に）
+            const startLine = document.getElementById('startLine');
+            startLine.style.display = 'block';
+            startLine.style.top = (raceTopMargin - 10) + 'px';
+
+            // ドロップゾーンを生成（スタートラインの上に）
+            createDropZones(count, columnWidth, raceTopMargin - 80);
 
             // 早送りボタンを表示（速度リセット）
             resetSpeed();
@@ -6562,13 +6597,16 @@
         function actuallyStartRace() {
             document.getElementById('raceBtn').style.display = 'none';
 
+            // スタートラインを非表示
+            document.getElementById('startLine').style.display = 'none';
+
             // キャラクターが配置されているプレイヤーのみ動かす
             // （キャラクターのHTML要素は配置時に既に作成済み）
             players.forEach((p, i) => {
                 if (p.char && p.charInfo) {
                     p.state = 'moving';
 
-                    // 初期位置を設定（プレイヤーのスタート位置に合わせる）
+                    // スタートライン位置からスタート
                     const charEl = document.getElementById(`running-char-${i}`);
                     if (charEl) {
                         const startX = (p.xIdx * columnWidth) + (columnWidth / 2);
