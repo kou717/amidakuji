@@ -3485,6 +3485,24 @@
             }
         }
 
+        // レースモードのクリーンアップ
+        function cleanupRaceMode() {
+            // 走行キャラクターをクリア
+            const runningLayer = document.getElementById('runningCharsLayer');
+            if (runningLayer) runningLayer.innerHTML = '';
+
+            // スタートラインを非表示
+            const startLine = document.getElementById('startLine');
+            if (startLine) startLine.style.display = 'none';
+
+            // ドロップゾーンをクリア
+            const dropZoneLayer = document.getElementById('dropZoneLayer');
+            if (dropZoneLayer) dropZoneLayer.innerHTML = '';
+
+            // topMarginをリセット
+            topMargin = 75;
+        }
+
         function goBack() {
             if (screenHistory.length > 1) {
                 screenHistory.pop(); // 現在の画面を削除
@@ -3497,6 +3515,8 @@
                     // BGMと移動音を停止
                     stopBgm();
                     stopMoveSound();
+                    // レースモードのクリーンアップ
+                    cleanupRaceMode();
                 }
 
                 showScreen(prevScreen, false);
@@ -3600,6 +3620,8 @@
             ladders = [];
             screenHistory = ['menuScreen'];
             stopBgm();
+            // レースモードのクリーンアップ
+            cleanupRaceMode();
             // テンプレート適用を初期化
             activeTemplateGenre = null;
             activeTemplateSub = null;
@@ -3614,6 +3636,8 @@
             ladders = [];
             screenHistory = ['menuScreen'];
             stopBgm();
+            // レースモードのクリーンアップ
+            cleanupRaceMode();
             // テンプレート適用を初期化
             activeTemplateGenre = null;
             activeTemplateSub = null;
