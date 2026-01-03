@@ -4560,6 +4560,9 @@
         let raceParticipantNames = [];
 
         function selectMode(mode) {
+            // 前のモードの残留物をクリア
+            cleanupRaceMode();
+
             currentMode = mode;
             document.getElementById('listTitle').innerText = (mode === 'normal') ? '選択肢を入力' : '参加者を入力';
 
