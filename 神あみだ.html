@@ -3757,6 +3757,13 @@
         function openRaceSetup() {
             currentMode = 'race';
             // キャラクターは維持（リセットしない）
+            // 初回のみデフォルトキャラクターを追加
+            if (raceCharacters.length === 0) {
+                raceCharacters = [
+                    { id: 1, animal: '🐶', name: 'いぬお', selected: true },
+                    { id: 2, animal: '🐱', name: 'ねこみ', selected: true }
+                ];
+            }
             selectedAnimalEmoji = null;
             renderCharacterList();
             updateParticipantCount();
@@ -3958,15 +3965,19 @@
             const goalList = document.getElementById('raceGoalList');
             goalList.innerHTML = '';
 
-            // 選択人数分の空欄を作成
-            for (let i = 0; i < selectedCount; i++) {
-                addRaceGoalItem();
+            // デフォルトゴール（テスト用）
+            const defaultGoals = ['1位', '2位', '3位', '4位'];
+
+            // 選択人数分の空欄を作成（最低4つ）
+            const goalCount = Math.max(selectedCount, 4);
+            for (let i = 0; i < goalCount; i++) {
+                addRaceGoalItem(defaultGoals[i] || '');
             }
 
             showScreen('raceGoalScreen');
         }
 
-        function addRaceGoalItem() {
+        function addRaceGoalItem(defaultValue = '') {
             const goalList = document.getElementById('raceGoalList');
             const index = goalList.children.length;
             if (index >= 8) return;
@@ -3976,7 +3987,7 @@
             item.innerHTML = `
                 <div class="race-goal-index">${index + 1}</div>
                 <input type="text" class="race-goal-input" placeholder="選択肢を入力" maxlength="20"
-                       oninput="updateRaceGoalBtn()">
+                       value="${defaultValue}" oninput="updateRaceGoalBtn()">
             `;
 
             // スワイプ削除
@@ -4419,12 +4430,12 @@
                         <div class="char-avatar">${char.animal}</div>
                         <div class="char-name">${char.name}</div>
                     `;
-                    // ドロップゾーンの位置に配置
+                    // ドロップゾーンの位置に配置（アイコン1つ分上に）
                     const zoneRect = zone.getBoundingClientRect();
                     const gameScreen = document.getElementById('gameScreen');
                     const gameRect = gameScreen.getBoundingClientRect();
                     charEl.style.left = (zoneRect.left - gameRect.left + zoneRect.width/2 - 25) + 'px';
-                    charEl.style.top = (zoneRect.top - gameRect.top + zoneRect.height/2 + 40 + gameScreen.scrollTop) + 'px';
+                    charEl.style.top = (zoneRect.top - gameRect.top + zoneRect.height/2 - 10 + gameScreen.scrollTop) + 'px';
                     runningLayer.appendChild(charEl);
                 } else {
                     zone.classList.remove('occupied');
