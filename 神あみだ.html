@@ -1395,18 +1395,16 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 10px;
-            background: white;
+            padding: 5px;
+            background: transparent;
             border-radius: 12px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
             cursor: grab;
             touch-action: none;
-            transition: transform 0.15s, box-shadow 0.15s;
+            transition: transform 0.15s;
         }
         .placement-char:active {
             cursor: grabbing;
             transform: scale(1.05);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
         }
         .placement-char.placed {
             opacity: 0.3;
@@ -4426,7 +4424,7 @@
                     const gameScreen = document.getElementById('gameScreen');
                     const gameRect = gameScreen.getBoundingClientRect();
                     charEl.style.left = (zoneRect.left - gameRect.left + zoneRect.width/2 - 25) + 'px';
-                    charEl.style.top = (zoneRect.top - gameRect.top + zoneRect.height/2 - 25 + gameScreen.scrollTop) + 'px';
+                    charEl.style.top = (zoneRect.top - gameRect.top + zoneRect.height/2 - 10 + gameScreen.scrollTop) + 'px';
                     runningLayer.appendChild(charEl);
                 } else {
                     zone.classList.remove('occupied');
@@ -6564,7 +6562,7 @@
                     if (charEl) {
                         const startX = (p.xIdx * columnWidth) + (columnWidth / 2);
                         charEl.style.left = (startX - 25) + 'px';
-                        charEl.style.top = (p.y - 25) + 'px';
+                        charEl.style.top = (p.y - 10) + 'px';
                     }
                 }
             });
@@ -7683,7 +7681,7 @@
                         const charEl = document.getElementById(`running-char-${i}`);
                         if (charEl) {
                             charEl.style.left = (drawX - 25) + 'px';
-                            charEl.style.top = (p.y - 25) + 'px';
+                            charEl.style.top = (p.y - 10) + 'px';
                         }
                     }
                 });
