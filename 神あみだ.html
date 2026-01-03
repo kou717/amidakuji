@@ -3499,8 +3499,15 @@
             const dropZoneLayer = document.getElementById('dropZoneLayer');
             if (dropZoneLayer) dropZoneLayer.innerHTML = '';
 
+            // キャラクター配置UIをクリア
+            const placementUI = document.getElementById('charPlacementUI');
+            if (placementUI) placementUI.style.display = 'none';
+
             // topMarginをリセット
             topMargin = 75;
+
+            // レース用変数をリセット
+            raceSelectedChars = [];
         }
 
         function goBack() {
@@ -5531,6 +5538,9 @@
 
             showScreen('gameScreen');
             startedPlayerCount = 0;
+
+            // レースモードの残留物を完全にクリア
+            cleanupRaceMode();
 
             // 通常モード用にtopMarginをリセット
             topMargin = 75;
