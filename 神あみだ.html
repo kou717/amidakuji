@@ -4205,13 +4205,13 @@
             raceBtn.style.display = 'block';
             raceBtn.disabled = true; // 配置完了まで無効
 
-            // スタートラインを表示（raceTopMarginの位置に）
+            // スタートラインを表示（あみだくじの少し上に）
             const startLine = document.getElementById('startLine');
             startLine.style.display = 'block';
-            startLine.style.top = (raceTopMargin - 10) + 'px';
+            startLine.style.top = (raceTopMargin - 30) + 'px';
 
             // ドロップゾーンを生成（スタートラインの上に）
-            createDropZones(count, columnWidth, raceTopMargin - 80);
+            createDropZones(count, columnWidth, raceTopMargin - 100);
 
             // 早送りボタンを表示（速度リセット）
             resetSpeed();
@@ -4219,8 +4219,10 @@
 
             drawFrame();
 
+            // ゴールを見せてから、キャラ配置が見える位置までスクロール
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'instant' });
             setTimeout(() => {
+                // キャラ配置エリアが見える位置で止める
                 window.scrollTo({ top: 0, behavior: 'smooth' });
 
                 // キャラクター配置UIを表示
