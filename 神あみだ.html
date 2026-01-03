@@ -1434,7 +1434,7 @@
             white-space: nowrap;
         }
 
-        /* スタート位置のドロップゾーン */
+        /* スタート位置のドロップゾーン（透明、ドロップ検出用） */
         .start-drop-zone {
             position: absolute;
             top: 0;
@@ -1442,29 +1442,24 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            border: 3px dashed #e74c3c;
+            border: none;
             border-radius: 12px;
-            background: rgba(255,255,255,0.9);
-            transition: background 0.2s, border-color 0.2s, transform 0.2s;
+            background: transparent;
+            transition: background 0.2s, transform 0.2s;
             z-index: 50;
         }
         .start-drop-zone.highlight {
-            background: rgba(231,76,60,0.2);
-            border-color: #c0392b;
+            background: rgba(231,76,60,0.15);
             transform: scale(1.05);
         }
         .start-drop-zone.occupied {
-            border-style: solid;
-            background: linear-gradient(135deg, #fff5f5 0%, #ffe8ec 100%);
+            background: transparent;
         }
         .start-drop-zone .zone-label {
-            font-size: 0.7rem;
-            color: #888;
+            display: none;
         }
         .start-drop-zone .zone-char {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            display: none;
         }
         .start-drop-zone .zone-char .char-avatar {
             width: 40px;
@@ -1489,6 +1484,51 @@
             background: white;
             border-radius: 12px;
             box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        /* レース中のキャラクター（HTML要素） */
+        .running-char {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            pointer-events: none;
+            z-index: 100;
+            transition: none;
+        }
+        .running-char .char-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+        .running-char .char-name {
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: #333;
+            background: rgba(255,255,255,0.9);
+            padding: 2px 6px;
+            border-radius: 8px;
+            margin-top: 3px;
+            white-space: nowrap;
+            max-width: 70px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #runningCharsLayer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
         }
 
         #fastForwardBtn {
@@ -2603,6 +2643,7 @@
     <div id="gameScreen" class="screen">
         <div id="buttonLayer"></div>
         <div id="dropZoneLayer"></div>
+        <div id="runningCharsLayer"></div>
 
         <canvas id="amidaCanvas"></canvas>
         <div id="tankLayer"></div>
@@ -4357,22 +4398,36 @@
             startLineAssignments[zoneIndex] = char;
         }
 
-        // ドロップゾーンの表示を更新
+        // 配置されたキャラクターを表示
         function updateDropZoneDisplay() {
             const zones = document.querySelectorAll('.start-drop-zone');
+            const runningLayer = document.getElementById('runningCharsLayer');
+
+            // 既存の配置キャラクターをクリア
+            runningLayer.innerHTML = '';
+
             zones.forEach((zone, i) => {
                 const char = startLineAssignments[i];
                 if (char) {
                     zone.classList.add('occupied');
-                    zone.innerHTML = `
-                        <div class="zone-char">
-                            <div class="char-avatar" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#ffecd2,#fcb69f);display:flex;align-items:center;justify-content:center;font-size:1.4rem;">${char.animal}</div>
-                            <div class="char-name" style="font-size:0.7rem;font-weight:bold;margin-top:2px;">${char.name}</div>
-                        </div>
+
+                    // runningCharsLayerにキャラクターを表示（レースと同じスタイル）
+                    const charEl = document.createElement('div');
+                    charEl.className = 'running-char';
+                    charEl.id = `running-char-${i}`;
+                    charEl.innerHTML = `
+                        <div class="char-avatar">${char.animal}</div>
+                        <div class="char-name">${char.name}</div>
                     `;
+                    // ドロップゾーンの位置に配置
+                    const zoneRect = zone.getBoundingClientRect();
+                    const gameScreen = document.getElementById('gameScreen');
+                    const gameRect = gameScreen.getBoundingClientRect();
+                    charEl.style.left = (zoneRect.left - gameRect.left + zoneRect.width/2 - 25) + 'px';
+                    charEl.style.top = (zoneRect.top - gameRect.top + zoneRect.height/2 - 25 + gameScreen.scrollTop) + 'px';
+                    runningLayer.appendChild(charEl);
                 } else {
                     zone.classList.remove('occupied');
-                    zone.innerHTML = `<span class="zone-label">レーン${i + 1}</span>`;
                 }
             });
         }
@@ -6495,15 +6550,23 @@
 
         function actuallyStartRace() {
             document.getElementById('raceBtn').style.display = 'none';
-            // ドロップゾーンを非表示にする
-            document.getElementById('dropZoneLayer').style.display = 'none';
 
             // キャラクターが配置されているプレイヤーのみ動かす
-            players.forEach(p => {
-                if (p.char) {
+            // （キャラクターのHTML要素は配置時に既に作成済み）
+            players.forEach((p, i) => {
+                if (p.char && p.charInfo) {
                     p.state = 'moving';
+
+                    // 初期位置を設定（プレイヤーのスタート位置に合わせる）
+                    const charEl = document.getElementById(`running-char-${i}`);
+                    if (charEl) {
+                        const startX = (p.xIdx * columnWidth) + (columnWidth / 2);
+                        charEl.style.left = (startX - 25) + 'px';
+                        charEl.style.top = (p.y - 25) + 'px';
+                    }
                 }
             });
+
             isAnimating = true;
             document.getElementById('curtain').style.opacity = 0;
 
@@ -7606,23 +7669,23 @@
                 }
             });
 
-            // レースモードの描画
-            players.forEach(p => {
-                if (currentMode === 'race') {
-                    let drawX = (p.xIdx * columnWidth) + (columnWidth / 2);
-                    if (p.trail.length > 0) {
-                        let tip = p.trail[p.trail.length - 1];
-                        drawX = tip.x;
+            // レースモードのキャラクター位置更新（HTML要素）
+            if (currentMode === 'race') {
+                players.forEach((p, i) => {
+                    if (p.char && p.state !== 'idle') {
+                        let drawX = (p.xIdx * columnWidth) + (columnWidth / 2);
+                        if (p.trail.length > 0) {
+                            let tip = p.trail[p.trail.length - 1];
+                            drawX = tip.x;
+                        }
+                        const charEl = document.getElementById(`running-char-${i}`);
+                        if (charEl) {
+                            charEl.style.left = (drawX - 25) + 'px';
+                            charEl.style.top = (p.y - 25) + 'px';
+                        }
                     }
-                    if (p.state !== 'idle') {
-                        ctx.beginPath();
-                        ctx.arc(drawX, p.y, 18, 0, Math.PI*2);
-                        ctx.fillStyle = "white"; ctx.fill();
-                        ctx.strokeStyle = p.color; ctx.stroke();
-                        ctx.fillStyle = "#000"; ctx.fillText(p.char, drawX, p.y);
-                    }
-                }
-            });
+                });
+            }
         }
 
         // 結果発表処理
