@@ -5499,7 +5499,7 @@
                     cameFromCurve: false,
                     curveExitY: undefined,
 
-                    char: currentMode === 'race' ? characters[i] : null,
+                    char: null,  // レースモードでは配置時に設定される
                     color: colors[i],
                     trail: [{x: startX, y: topMargin}, {x: startX, y: topMargin}]
                 });
@@ -6495,6 +6495,9 @@
 
         function actuallyStartRace() {
             document.getElementById('raceBtn').style.display = 'none';
+            // ドロップゾーンを非表示にする
+            document.getElementById('dropZoneLayer').style.display = 'none';
+
             // キャラクターが配置されているプレイヤーのみ動かす
             players.forEach(p => {
                 if (p.char) {
