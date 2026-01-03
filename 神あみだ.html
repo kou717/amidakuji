@@ -4109,7 +4109,8 @@
                     cameFromCurve: false,
                     curveExitY: undefined,
 
-                    char: characters[i],
+                    char: null,  // 配置されるまでnull
+                    charInfo: null,
                     color: colors[i],
                     trail: [{x: startX, y: raceTopMargin}, {x: startX, y: raceTopMargin}]
                 });
