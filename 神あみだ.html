@@ -6597,9 +6597,6 @@
         function actuallyStartRace() {
             document.getElementById('raceBtn').style.display = 'none';
 
-            // スタートラインを非表示
-            document.getElementById('startLine').style.display = 'none';
-
             // キャラクターが配置されているプレイヤーのみ動かす
             // （キャラクターのHTML要素は配置時に既に作成済み）
             players.forEach((p, i) => {
