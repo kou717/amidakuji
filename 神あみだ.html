@@ -4424,7 +4424,7 @@
                     const gameScreen = document.getElementById('gameScreen');
                     const gameRect = gameScreen.getBoundingClientRect();
                     charEl.style.left = (zoneRect.left - gameRect.left + zoneRect.width/2 - 25) + 'px';
-                    charEl.style.top = (zoneRect.top - gameRect.top + zoneRect.height/2 - 10 + gameScreen.scrollTop) + 'px';
+                    charEl.style.top = (zoneRect.top - gameRect.top + zoneRect.height/2 + 40 + gameScreen.scrollTop) + 'px';
                     runningLayer.appendChild(charEl);
                 } else {
                     zone.classList.remove('occupied');
@@ -6562,7 +6562,7 @@
                     if (charEl) {
                         const startX = (p.xIdx * columnWidth) + (columnWidth / 2);
                         charEl.style.left = (startX - 25) + 'px';
-                        charEl.style.top = (p.y - 10) + 'px';
+                        charEl.style.top = (p.y + 40) + 'px';
                     }
                 }
             });
@@ -7681,7 +7681,7 @@
                         const charEl = document.getElementById(`running-char-${i}`);
                         if (charEl) {
                             charEl.style.left = (drawX - 25) + 'px';
-                            charEl.style.top = (p.y - 10) + 'px';
+                            charEl.style.top = (p.y + 40) + 'px';
                         }
                     }
                 });
