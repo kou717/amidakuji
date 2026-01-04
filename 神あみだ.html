@@ -6115,6 +6115,9 @@
             const memberCount = count || players.length;
             const stepCount = steps || (currentMode === 'normal' ? 24 : 50);
 
+            // ゴール手前のストレート部分を確保するマージン（レースモードは長め）
+            const endLevelMargin = (currentMode === 'race') ? 15 : 4;
+
             // 1%の確率で特殊コース（それぞれ1%）
             let specialRoll = Math.random();
 
@@ -6124,7 +6127,7 @@
                 let curveCount = Math.floor(stepCount / 5);
                 for (let i = 0; i < curveCount; i++) {
                     let col = Math.floor(Math.random() * (memberCount - 1));
-                    let level = 2 + Math.floor(Math.random() * (stepCount - 6));
+                    let level = 2 + Math.floor(Math.random() * (stepCount - endLevelMargin - 2));
                     let type = Math.random() < 0.5 ? 'right_down' : 'left_down';
 
                     // 重複チェック
@@ -6146,7 +6149,7 @@
 
                 for (let i = 0; i < halfMoonCount; i++) {
                     let col = Math.floor(Math.random() * memberCount);
-                    let level = 2 + Math.floor(Math.random() * (stepCount - 6));
+                    let level = 2 + Math.floor(Math.random() * (stepCount - endLevelMargin - 2));
 
                     // 方向決定
                     let direction;
@@ -6212,7 +6215,7 @@
                 // 10%の確率で同じ方向の2連続カーブを配置
                 if (Math.random() < 0.1) {
                     let curveType = (Math.random() > 0.5) ? 'right_down' : 'left_down';
-                    let firstLevel = 2 + Math.floor(Math.random() * (stepCount - 10));
+                    let firstLevel = 2 + Math.floor(Math.random() * (stepCount - endLevelMargin - 5));
 
                     // 1つ目のカーブ
                     ladders.push({ colIndex: 0, level: firstLevel, type: curveType });
@@ -6255,7 +6258,7 @@
                 // 最初のストレートを長くするためのオフセット
                 const startLevelOffset = 3;
 
-                for (let s = startLevelOffset; s < stepCount - 4; s++) {
+                for (let s = startLevelOffset; s < stepCount - endLevelMargin; s++) {
                     for (let i = 0; i < memberCount - 1; i++) {
                         // カーブの確率
                         let curveChance;
@@ -6480,7 +6483,7 @@
                         let attempts = 0;
                         while (columnBridgeCount[col] < minBridgesPerColumn && attempts < 30) {
                             attempts++;
-                            const level = Math.floor(Math.random() * stepCount);
+                            const level = Math.floor(Math.random() * (stepCount - endLevelMargin));
 
                             // カーブと干渉しないかチェック
                             if (conflictsWithCurve(col, level)) continue;
@@ -6501,12 +6504,13 @@
                         }
                     }
 
-                    // 上部・中部・下部に橋があるか確認
-                    const areaSize = Math.floor(stepCount / 3);
+                    // 上部・中部・下部に橋があるか確認（ゴール手前は除外）
+                    const effectiveStepCount = stepCount - endLevelMargin;
+                    const areaSize = Math.floor(effectiveStepCount / 3);
                     const areas = [
                         { start: 0, end: areaSize },
                         { start: areaSize, end: areaSize * 2 },
-                        { start: areaSize * 2, end: stepCount }
+                        { start: areaSize * 2, end: effectiveStepCount }
                     ];
 
                     for (let col = 0; col < memberCount - 1; col++) {
@@ -6555,7 +6559,7 @@
                         // 配置可能なレベルをすべて収集
                         let validLevels = [];
 
-                        for (let level = 2; level < stepCount - 5; level++) {
+                        for (let level = 2; level < stepCount - endLevelMargin; level++) {
                             let startLevel = level;
                             let endLevel = level + 3;
 
@@ -7379,6 +7383,9 @@
                 if (currentMode === 'race' && p.finishOrder === undefined) {
                     p.finishOrder = raceFinishOrder++;
 
+                    // ゴール毎に両サイドから紙吹雪
+                    createSideConfetti();
+
                     // 1位ゴール時にテロップ表示
                     if (p.finishOrder === 0 && p.charInfo) {
                         // 2位との差を計算
@@ -7401,6 +7408,14 @@
                             showRaceTelop(telopText, 1500);
                         } else {
                             showRaceTelop(`🏆 ${p.charInfo.animal}${p.charInfo.name}が1位でゴール！`, 1500);
+                        }
+                    }
+
+                    // 2位ゴール時にテロップ表示
+                    if (p.finishOrder === 1 && p.charInfo) {
+                        const firstPlace = players.find(pl => pl.finishOrder === 0);
+                        if (firstPlace && firstPlace.charInfo) {
+                            showRaceTelop(`🥈 ${p.charInfo.animal}${p.charInfo.name}が2位でゴール！`, 1200);
                         }
                     }
                 }
@@ -8502,6 +8517,28 @@
                     spread: 160,
                     origin: { y: 0.6 },
                     zIndex: 3000 // モーダル(2000)より手前に
+                });
+            }
+        }
+
+        // 両サイドから紙吹雪（ゴール時用）
+        function createSideConfetti() {
+            if (typeof confetti === 'function') {
+                // 左から
+                confetti({
+                    particleCount: 50,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0, y: 0.6 },
+                    zIndex: 3000
+                });
+                // 右から
+                confetti({
+                    particleCount: 50,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1, y: 0.6 },
+                    zIndex: 3000
                 });
             }
         }
