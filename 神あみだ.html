@@ -4570,21 +4570,30 @@
                         });
                     }
 
-                    // ドン！ であみだくじのてっぺんに素早く移動
+                    // ドン！ であみだくじのてっぺんに素早く移動してすぐレース開始
                     if (sequence[i] === 'ドン！') {
                         charElements.forEach(({ el, player, idx }) => {
-                            el.style.transition = 'top 0.2s ease-in';
+                            el.style.transition = 'top 0.15s ease-in';
                             const startX = (player.xIdx * columnWidth) + (columnWidth / 2);
                             el.style.left = (startX - 25) + 'px';
                             el.style.top = (topMargin + 40) + 'px';
                         });
+
+                        // 移動完了後すぐにレース開始（なめらかに繋げる）
+                        setTimeout(() => {
+                            overlay.classList.remove('show');
+                            charElements.forEach(({ el }) => {
+                                el.style.transition = 'none';
+                            });
+                            actuallyStartRace();
+                        }, 200);
+                        return; // ここで終了
                     }
 
                     i++;
                     setTimeout(showNext, 1000);
                 } else {
                     overlay.classList.remove('show');
-                    // transitionを解除してからレース開始
                     charElements.forEach(({ el }) => {
                         el.style.transition = 'none';
                     });
