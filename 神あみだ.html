@@ -1523,6 +1523,19 @@
             z-index: 1;
         }
 
+        /* 配置済みでドラッグ可能なキャラクター */
+        .running-char.placed-draggable {
+            pointer-events: auto;
+            cursor: grab;
+        }
+        .running-char.placed-draggable:active {
+            cursor: grabbing;
+        }
+        .running-char.placed-draggable .char-avatar {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            border: 2px solid rgba(255,255,255,0.8);
+        }
+
         #runningCharsLayer {
             position: absolute;
             top: 0;
@@ -5255,8 +5268,10 @@
 
                     // runningCharsLayerにキャラクターを表示（レースと同じスタイル）
                     const charEl = document.createElement('div');
-                    charEl.className = 'running-char';
+                    charEl.className = 'running-char placed-draggable';
                     charEl.id = `running-char-${i}`;
+                    charEl.dataset.zoneIndex = i;
+                    charEl.dataset.charId = char.id;
                     charEl.innerHTML = `
                         <div class="char-avatar">${char.animal}</div>
                         <div class="char-name">${char.name}</div>
@@ -5267,11 +5282,119 @@
                     const gameRect = gameScreen.getBoundingClientRect();
                     charEl.style.left = (zoneRect.left - gameRect.left + zoneRect.width/2 - 25) + 'px';
                     charEl.style.top = (zoneRect.top - gameRect.top + zoneRect.height/2 - 10 + gameScreen.scrollTop) + 'px';
+
+                    // 配置済みキャラクターにドラッグイベントを追加
+                    charEl.addEventListener('touchstart', (e) => placedCharDragStart(e, i, charEl), { passive: false });
+                    charEl.addEventListener('touchmove', (e) => placementDragMove(e), { passive: false });
+                    charEl.addEventListener('touchend', (e) => placedCharDragEnd(e, i));
+                    charEl.addEventListener('mousedown', (e) => placedCharMouseStart(e, i, charEl));
+
                     runningLayer.appendChild(charEl);
                 } else {
                     zone.classList.remove('occupied');
                 }
             });
+        }
+
+        // 配置済みキャラクターのドラッグ開始（タッチ）
+        function placedCharDragStart(e, zoneIndex, el) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            dragStartX = touch.clientX;
+            dragStartY = touch.clientY;
+            dragElement = el.cloneNode(true);
+            dragElement.classList.add('dragging');
+            dragElement.style.position = 'fixed';
+            dragElement.style.left = (touch.clientX - 25) + 'px';
+            dragElement.style.top = (touch.clientY - 25) + 'px';
+            dragElement.style.zIndex = '10000';
+            dragElement.style.pointerEvents = 'none';
+            document.body.appendChild(dragElement);
+            el.style.opacity = '0.3';
+            dragSourceZoneIndex = zoneIndex;
+        }
+
+        // 配置済みキャラクターのドラッグ終了（タッチ）
+        function placedCharDragEnd(e, sourceZoneIndex) {
+            if (dragElement) {
+                dragElement.remove();
+                dragElement = null;
+            }
+
+            // 元のキャラクターの透明度を戻す
+            const sourceEl = document.getElementById(`running-char-${sourceZoneIndex}`);
+            if (sourceEl) sourceEl.style.opacity = '1';
+
+            const touch = e.changedTouches[0];
+            const dropZone = findDropZoneAt(touch.clientX, touch.clientY);
+            if (dropZone) {
+                const targetZoneIndex = parseInt(dropZone.dataset.index);
+                swapPlacedCharacters(sourceZoneIndex, targetZoneIndex);
+            }
+            dragSourceZoneIndex = null;
+        }
+
+        // 配置済みキャラクターのドラッグ開始（マウス）
+        function placedCharMouseStart(e, zoneIndex, el) {
+            e.preventDefault();
+            dragStartX = e.clientX;
+            dragStartY = e.clientY;
+            dragElement = el.cloneNode(true);
+            dragElement.classList.add('dragging');
+            dragElement.style.position = 'fixed';
+            dragElement.style.left = (e.clientX - 25) + 'px';
+            dragElement.style.top = (e.clientY - 25) + 'px';
+            dragElement.style.zIndex = '10000';
+            dragElement.style.pointerEvents = 'none';
+            document.body.appendChild(dragElement);
+            el.style.opacity = '0.3';
+            dragSourceZoneIndex = zoneIndex;
+
+            const moveHandler = (e) => {
+                if (dragElement) {
+                    dragElement.style.left = (e.clientX - 25) + 'px';
+                    dragElement.style.top = (e.clientY - 25) + 'px';
+                }
+            };
+
+            const upHandler = (e) => {
+                document.removeEventListener('mousemove', moveHandler);
+                document.removeEventListener('mouseup', upHandler);
+
+                if (dragElement) {
+                    dragElement.remove();
+                    dragElement = null;
+                }
+
+                const sourceEl = document.getElementById(`running-char-${zoneIndex}`);
+                if (sourceEl) sourceEl.style.opacity = '1';
+
+                const dropZone = findDropZoneAt(e.clientX, e.clientY);
+                if (dropZone) {
+                    const targetZoneIndex = parseInt(dropZone.dataset.index);
+                    swapPlacedCharacters(zoneIndex, targetZoneIndex);
+                }
+                dragSourceZoneIndex = null;
+            };
+
+            document.addEventListener('mousemove', moveHandler);
+            document.addEventListener('mouseup', upHandler);
+        }
+
+        // 配置済みキャラクターを入れ替え
+        let dragSourceZoneIndex = null;
+
+        function swapPlacedCharacters(sourceIndex, targetIndex) {
+            if (sourceIndex === targetIndex) return;
+
+            const sourceChar = startLineAssignments[sourceIndex];
+            const targetChar = startLineAssignments[targetIndex];
+
+            startLineAssignments[sourceIndex] = targetChar;
+            startLineAssignments[targetIndex] = sourceChar;
+
+            updateDropZoneDisplay();
+            showCharPlacementUI(); // UIも更新
         }
 
         // 配置状態をチェック
@@ -5282,13 +5405,18 @@
             // 1人以上配置されていればスタート可能
             document.getElementById('raceBtn').disabled = (placedCount === 0);
 
-            // 全キャラクターが配置されたらUIを非表示
+            // 全キャラクターが配置されたらメッセージ更新（UIは表示したまま入れ替え可能）
             const allCharsPlaced = raceSelectedChars.every(char =>
                 startLineAssignments.includes(char)
             );
 
-            if (allCharsPlaced) {
-                hideCharPlacementUI();
+            const instruction = document.querySelector('#charPlacementUI p');
+            if (instruction) {
+                if (allCharsPlaced) {
+                    instruction.innerHTML = '配置完了！<br>ドラッグで入れ替えできます';
+                } else {
+                    instruction.innerHTML = 'キャラクターをドラッグして<br>好きなスタートラインに配置しよう！';
+                }
             }
         }
 
