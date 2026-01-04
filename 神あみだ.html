@@ -5048,10 +5048,12 @@
         // キャラクター配置UIを表示
         function showCharPlacementUI() {
             const container = document.getElementById('placementChars');
-            container.innerHTML = raceSelectedChars.map(char => {
-                const isPlaced = startLineAssignments.includes(char);
+            // 未配置のキャラクターのみ表示
+            const unplacedChars = raceSelectedChars.filter(char => !startLineAssignments.includes(char));
+
+            container.innerHTML = unplacedChars.map(char => {
                 return `
-                    <div class="placement-char ${isPlaced ? 'placed' : ''}" data-id="${char.id}">
+                    <div class="placement-char" data-id="${char.id}">
                         <div class="char-avatar">${char.animal}</div>
                         <div class="char-name">${char.name}</div>
                     </div>
@@ -5059,7 +5061,7 @@
             }).join('');
 
             // イベントリスナーを追加
-            container.querySelectorAll('.placement-char:not(.placed)').forEach(el => {
+            container.querySelectorAll('.placement-char').forEach(el => {
                 const id = parseInt(el.dataset.id);
 
                 // タッチイベント
