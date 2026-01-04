@@ -4067,7 +4067,7 @@
             isSetupBgmPlaying = true;
 
             setupBgmGain = audioCtx.createGain();
-            setupBgmGain.gain.value = 0.55;
+            setupBgmGain.gain.value = 0.7;
             setupBgmGain.connect(audioCtx.destination);
 
             playSetupBgmLoop();
@@ -4239,7 +4239,7 @@
             }
 
             // セットアップ画面のBGM制御
-            if (id === 'setupScreen') {
+            if (id === 'setupScreen' || id === 'raceSetupScreen') {
                 startSetupBgm();
             } else {
                 stopSetupBgm();
