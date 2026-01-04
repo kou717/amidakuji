@@ -2361,10 +2361,14 @@
             100% { opacity: 0; transform: translateY(-20px) scale(0.5); }
         }
 
-        /* スピードライン */
-        @keyframes speedLineMove {
-            0% { top: -50px; opacity: 1; }
-            100% { top: 120vh; opacity: 0; }
+        /* スピードライン（横向き集中線） */
+        @keyframes speedLineLeft {
+            0% { left: -150px; opacity: 1; }
+            100% { left: 120vw; opacity: 0; }
+        }
+        @keyframes speedLineRight {
+            0% { right: -150px; opacity: 1; }
+            100% { right: 120vw; opacity: 0; }
         }
 
         /* 砂煙爆発 */
@@ -3745,21 +3749,31 @@
 
         function createSpeedLine(container) {
             const line = document.createElement('div');
-            const x = Math.random() * 100;
-            const width = 2 + Math.random() * 3;
-            const opacity = 0.3 + Math.random() * 0.4;
+
+            // 画面の左右どちらかから出る
+            const fromLeft = Math.random() < 0.5;
+            const y = Math.random() * 100;
+            const length = 80 + Math.random() * 120;
+            const height = 2 + Math.random() * 2;
+            const opacity = 0.4 + Math.random() * 0.3;
+            const duration = 0.15 + Math.random() * 0.1;
 
             line.style.cssText = `
                 position: absolute;
-                left: ${x}%;
-                top: -50px;
-                width: ${width}px;
-                height: 50px;
-                background: linear-gradient(to bottom, transparent, rgba(255,255,255,${opacity}), transparent);
-                animation: speedLineMove 0.3s linear forwards;
+                ${fromLeft ? 'left: -150px' : 'right: -150px'};
+                top: ${y}%;
+                width: ${length}px;
+                height: ${height}px;
+                background: linear-gradient(${fromLeft ? 'to right' : 'to left'},
+                    transparent,
+                    rgba(255,255,255,${opacity}) 20%,
+                    rgba(255,255,255,${opacity}) 80%,
+                    transparent);
+                border-radius: ${height}px;
+                animation: ${fromLeft ? 'speedLineLeft' : 'speedLineRight'} ${duration}s linear forwards;
             `;
             container.appendChild(line);
-            setTimeout(() => line.remove(), 300);
+            setTimeout(() => line.remove(), duration * 1000);
         }
 
         function hideSpeedLines() {
