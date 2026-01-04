@@ -5862,7 +5862,10 @@
                 // 通常のカーブ配置
                 let maxCurves = (memberCount === 2) ? 4 : Math.floor(memberCount * 2);
 
-                for (let s = 0; s < stepCount - 4; s++) {
+                // 最初のストレートを長くするためのオフセット
+                const startLevelOffset = 3;
+
+                for (let s = startLevelOffset; s < stepCount - 4; s++) {
                     for (let i = 0; i < memberCount - 1; i++) {
                         // カーブの確率
                         let curveChance;
@@ -6048,7 +6051,7 @@
                     return count;
                 }
 
-                for (let s = 0; s < stepCount; s++) {
+                for (let s = startLevelOffset; s < stepCount; s++) {
                     for (let i = 0; i < memberCount - 1; i++) {
                         // カーブと干渉するならスキップ
                         if (conflictsWithCurve(i, s)) continue;
