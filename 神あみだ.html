@@ -3453,9 +3453,6 @@
 
         // レース用BGM（確率で切り替え）
         let raceBgmAudio = null;
-        let raceBgmOscillators = [];
-        let raceBgmGain = null;
-        let raceBgmInterval = null;
         let currentBgmType = null; // 'undoukai' or 'heaven'
 
         function startRaceBgm() {
@@ -3463,131 +3460,32 @@
 
             // 1%の確率でヘブン＆ヘル、99%で運動会BGM
             const random = Math.random() * 100;
+            let bgmFile;
             if (random < 1) {
                 currentBgmType = 'heaven';
-                playHeavenAndHell();
+                bgmFile = 'ヘブン＆ヘル.mp3';
             } else {
                 currentBgmType = 'undoukai';
-                playUndoukaiBgm();
+                bgmFile = '運動会.mp3';
             }
-        }
 
-        // ヘブン＆ヘル（外部ファイル）
-        function playHeavenAndHell() {
-            if (!raceBgmAudio) {
-                raceBgmAudio = new Audio('ヘブン＆ヘル.mp3');
-                raceBgmAudio.loop = true;
-                raceBgmAudio.volume = 0.5;
+            // 前のオーディオがあれば停止
+            if (raceBgmAudio) {
+                raceBgmAudio.pause();
+                raceBgmAudio = null;
             }
-            raceBgmAudio.currentTime = 0;
+
+            raceBgmAudio = new Audio(bgmFile);
+            raceBgmAudio.loop = true;
+            raceBgmAudio.volume = 0.5;
             raceBgmAudio.play().catch(e => console.log('BGM再生エラー:', e));
         }
 
-        // 運動会BGM（Web Audio API生成）
-        function playUndoukaiBgm() {
-            if (!initAudio()) return;
-
-            stopUndoukaiBgm();
-
-            raceBgmGain = audioCtx.createGain();
-            raceBgmGain.gain.value = 0.3;
-            raceBgmGain.connect(audioCtx.destination);
-
-            // 運動会っぽいマーチ調のメロディ
-            const tempo = 140; // BPM
-            const beatDuration = 60 / tempo;
-
-            // メロディパターン（ドレミファソラシド系の明るい曲）
-            const melodyNotes = [
-                523, 587, 659, 698, 784, 784, 784, 0,
-                784, 698, 659, 587, 523, 523, 523, 0,
-                659, 659, 698, 698, 784, 784, 880, 0,
-                880, 784, 698, 659, 587, 523, 523, 0
-            ];
-
-            // ベースライン
-            const bassNotes = [
-                262, 262, 330, 330, 392, 392, 330, 330,
-                262, 262, 330, 330, 392, 392, 262, 262,
-                330, 330, 392, 392, 440, 440, 392, 392,
-                330, 330, 262, 262, 196, 196, 262, 262
-            ];
-
-            let noteIndex = 0;
-
-            function playNote() {
-                const now = audioCtx.currentTime;
-
-                // メロディ
-                if (melodyNotes[noteIndex] > 0) {
-                    const melodyOsc = audioCtx.createOscillator();
-                    const melodyGain = audioCtx.createGain();
-                    melodyOsc.type = 'square';
-                    melodyOsc.frequency.value = melodyNotes[noteIndex];
-                    melodyGain.gain.setValueAtTime(0.15, now);
-                    melodyGain.gain.exponentialRampToValueAtTime(0.01, now + beatDuration * 0.8);
-                    melodyOsc.connect(melodyGain);
-                    melodyGain.connect(raceBgmGain);
-                    melodyOsc.start(now);
-                    melodyOsc.stop(now + beatDuration * 0.9);
-                }
-
-                // ベース
-                if (bassNotes[noteIndex] > 0) {
-                    const bassOsc = audioCtx.createOscillator();
-                    const bassGain = audioCtx.createGain();
-                    bassOsc.type = 'triangle';
-                    bassOsc.frequency.value = bassNotes[noteIndex] / 2;
-                    bassGain.gain.setValueAtTime(0.2, now);
-                    bassGain.gain.exponentialRampToValueAtTime(0.01, now + beatDuration * 0.8);
-                    bassOsc.connect(bassGain);
-                    bassGain.connect(raceBgmGain);
-                    bassOsc.start(now);
-                    bassOsc.stop(now + beatDuration * 0.9);
-                }
-
-                // ドラム（偶数拍でスネア風）
-                if (noteIndex % 2 === 0) {
-                    const drumBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.1, audioCtx.sampleRate);
-                    const drumData = drumBuffer.getChannelData(0);
-                    for (let i = 0; i < drumData.length; i++) {
-                        drumData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.02));
-                    }
-                    const drumSource = audioCtx.createBufferSource();
-                    drumSource.buffer = drumBuffer;
-                    const drumGain = audioCtx.createGain();
-                    drumGain.gain.value = 0.1;
-                    drumSource.connect(drumGain);
-                    drumGain.connect(raceBgmGain);
-                    drumSource.start(now);
-                }
-
-                noteIndex = (noteIndex + 1) % melodyNotes.length;
-            }
-
-            playNote();
-            raceBgmInterval = setInterval(playNote, beatDuration * 1000);
-        }
-
-        function stopUndoukaiBgm() {
-            if (raceBgmInterval) {
-                clearInterval(raceBgmInterval);
-                raceBgmInterval = null;
-            }
-            if (raceBgmGain) {
-                raceBgmGain.disconnect();
-                raceBgmGain = null;
-            }
-        }
-
         function stopRaceBgm() {
-            // ヘブン＆ヘル停止
             if (raceBgmAudio) {
                 raceBgmAudio.pause();
                 raceBgmAudio.currentTime = 0;
             }
-            // 運動会BGM停止
-            stopUndoukaiBgm();
             currentBgmType = null;
         }
 
