@@ -4169,7 +4169,7 @@
 
             columnWidth = logicalWidth / count;
 
-            // レースモード用の位置設定（キャラ134.5px, スタートライン149.5px, あみだ開始150px）
+            // レースモード用の位置設定（キャラ140px, スタートライン155px, あみだ開始150px）
             const raceTopMargin = 150;
             topMargin = raceTopMargin;  // グローバル変数を更新
 
@@ -4237,13 +4237,13 @@
             raceBtn.style.display = 'block';
             raceBtn.disabled = true; // 配置完了まで無効
 
-            // スタートラインを表示（あみだくじの少し上に）
+            // スタートラインを表示（あみだくじの少し下に）
             const startLine = document.getElementById('startLine');
             startLine.style.display = 'block';
-            startLine.style.top = (raceTopMargin - 0.5) + 'px';
+            startLine.style.top = (raceTopMargin + 5) + 'px';
 
             // ドロップゾーンを生成（スタートラインの上に）
-            createDropZones(count, columnWidth, raceTopMargin - 15.5);
+            createDropZones(count, columnWidth, raceTopMargin - 10);
 
             // 早送りボタンを表示（速度リセット）
             resetSpeed();
