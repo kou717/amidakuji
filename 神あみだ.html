@@ -3485,6 +3485,92 @@
             }
         }
 
+        // 最終ストレートの歓声システム
+        let finalStretchCheerNodes = [];
+        let finalStretchCheerGain = null;
+        let isCheeringActive = false;
+
+        function startFinalStretchCheer() {
+            if (!initAudio() || isCheeringActive) return;
+            isCheeringActive = true;
+
+            // マスターゲイン
+            finalStretchCheerGain = audioCtx.createGain();
+            finalStretchCheerGain.gain.value = 0.05; // 最初は小さく
+            finalStretchCheerGain.connect(audioCtx.destination);
+
+            // 複数の歓声レイヤーを作成
+            for (let layer = 0; layer < 4; layer++) {
+                createCheerLayer(layer);
+            }
+        }
+
+        function createCheerLayer(layer) {
+            if (!isCheeringActive || !audioCtx) return;
+
+            const bufferSize = audioCtx.sampleRate * 1.5;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+
+            // 歓声風のノイズを生成
+            for (let i = 0; i < bufferSize; i++) {
+                const t = i / audioCtx.sampleRate;
+                // うねりのあるエンベロープ
+                const envelope = Math.sin(Math.PI * t / 1.5) * (0.3 + 0.7 * Math.sin(t * 3 + layer));
+                // ランダムなピッチ変動
+                const pitchMod = Math.sin(t * (5 + layer * 2)) * 0.2;
+                data[i] = (Math.random() * 2 - 1) * envelope * (1 + pitchMod);
+            }
+
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.value = 600 + layer * 300;
+            filter.Q.value = 0.3;
+
+            const layerGain = audioCtx.createGain();
+            layerGain.gain.value = 0.3 + layer * 0.1;
+
+            noise.connect(filter);
+            filter.connect(layerGain);
+            layerGain.connect(finalStretchCheerGain);
+
+            noise.start();
+            finalStretchCheerNodes.push(noise);
+
+            // 終了時に次のレイヤーを開始してループ
+            noise.onended = () => {
+                const idx = finalStretchCheerNodes.indexOf(noise);
+                if (idx > -1) finalStretchCheerNodes.splice(idx, 1);
+                if (isCheeringActive) {
+                    createCheerLayer(layer);
+                }
+            };
+        }
+
+        function updateFinalStretchCheerVolume(intensity) {
+            // intensity: 0.0 (ストレート開始) ~ 1.0 (ゴール直前)
+            if (finalStretchCheerGain) {
+                // 0.05 → 0.4 まで徐々に上昇
+                const volume = 0.05 + intensity * 0.35;
+                finalStretchCheerGain.gain.setTargetAtTime(volume, audioCtx.currentTime, 0.1);
+            }
+        }
+
+        function stopFinalStretchCheer() {
+            isCheeringActive = false;
+            finalStretchCheerNodes.forEach(node => {
+                try { node.stop(); } catch(e) {}
+            });
+            finalStretchCheerNodes = [];
+            if (finalStretchCheerGain) {
+                finalStretchCheerGain.disconnect();
+                finalStretchCheerGain = null;
+            }
+        }
+
         // 画面フラッシュ
         function flashScreen() {
             const flash = document.createElement('div');
@@ -3829,8 +3915,9 @@
             const placementUI = document.getElementById('charPlacementUI');
             if (placementUI) placementUI.classList.remove('show');
 
-            // レースBGMを停止
+            // レースBGMと歓声を停止
             stopRaceBgm();
+            stopFinalStretchCheer();
 
             // レースモード用背景を解除
             const gameScreen = document.getElementById('gameScreen');
@@ -7120,6 +7207,31 @@
             // レース中の演出更新
             if (currentMode === 'race') {
                 updateLeaderSparkle();
+
+                // 最終ストレートの歓声処理
+                const movingPlayers = players.filter(p => p.state === 'moving');
+                if (movingPlayers.length > 0) {
+                    // 先頭プレイヤーを取得
+                    const leader = movingPlayers.reduce((max, p) => p.y > max.y ? p : max, movingPlayers[0]);
+
+                    // ゴール位置を計算
+                    let logicH = canvas.height / dpr;
+                    let tankBtm = logicH - 120; // 平均的なタンク位置
+                    let finishYApprox = tankBtm - tankHeight;
+
+                    // 最終ストレート開始位置（ゴール前300px）
+                    const finalStretchStart = finishYApprox - 300;
+
+                    if (leader.y >= finalStretchStart) {
+                        // 最終ストレートに入った
+                        if (!isCheeringActive) {
+                            startFinalStretchCheer();
+                        }
+                        // ゴールに近づくほど音量UP (0.0 ~ 1.0)
+                        const progress = Math.min(1, (leader.y - finalStretchStart) / 300);
+                        updateFinalStretchCheerVolume(progress);
+                    }
+                }
             }
 
             if (targetY > 0) {
@@ -7173,6 +7285,7 @@
                 // 移動音とレースBGMを停止
                 stopMoveSound();
                 stopRaceBgm();
+                stopFinalStretchCheer();
 
                 // 速度は維持（リセットしない）
 
