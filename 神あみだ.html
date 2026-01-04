@@ -3746,14 +3746,12 @@
         function createSpeedLine(container) {
             const line = document.createElement('div');
 
-            // 画面端から斜め下に流れる（走行方向に合わせて）
-            const fromLeft = Math.random() < 0.5;
-            const x = fromLeft ? Math.random() * 25 : 75 + Math.random() * 25;
-            const length = 80 + Math.random() * 120;
-            const width = 1.5 + Math.random() * 2;
-            const opacity = 0.25 + Math.random() * 0.25;
-            const duration = 0.25 + Math.random() * 0.15;
-            const angle = fromLeft ? 12 : -12; // 中央に向かって斜め
+            // 完全縦線・長め・速め
+            const x = Math.random() * 100;
+            const length = 200 + Math.random() * 250;
+            const width = 1.5 + Math.random() * 1.5;
+            const opacity = 0.35 + Math.random() * 0.3;
+            const duration = 0.1 + Math.random() * 0.05;
 
             line.style.cssText = `
                 position: absolute;
@@ -3763,11 +3761,10 @@
                 height: ${length}px;
                 background: linear-gradient(to bottom,
                     transparent,
-                    rgba(255,255,255,${opacity}) 20%,
-                    rgba(255,255,255,${opacity}) 80%,
+                    rgba(255,255,255,${opacity}) 15%,
+                    rgba(255,255,255,${opacity}) 85%,
                     transparent);
                 border-radius: ${width}px;
-                transform: rotate(${angle}deg);
                 animation: speedLineDown ${duration}s linear forwards;
             `;
             container.appendChild(line);
