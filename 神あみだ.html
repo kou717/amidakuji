@@ -1546,6 +1546,23 @@
             z-index: 100;
         }
 
+        /* トンネル */
+        #raceTunnel {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            z-index: 150;
+            pointer-events: none;
+            display: none;
+        }
+        #raceTunnel img {
+            width: 100%;
+            height: auto;
+        }
+
         /* チェッカーフラッグ柄のスタートライン */
         #startLine {
             position: absolute;
@@ -2866,6 +2883,7 @@
         <div id="buttonLayer"></div>
         <div id="dropZoneLayer"></div>
         <div id="runningCharsLayer"></div>
+        <div id="raceTunnel"><img src="トンネル.png" alt="トンネル"></div>
         <div id="startLine" style="display:none;"></div>
 
         <canvas id="amidaCanvas"></canvas>
@@ -4292,6 +4310,10 @@
             const startLine = document.getElementById('startLine');
             if (startLine) startLine.style.display = 'none';
 
+            // トンネルを非表示
+            const raceTunnel = document.getElementById('raceTunnel');
+            if (raceTunnel) raceTunnel.style.display = 'none';
+
             // ドロップゾーンをクリア
             const dropZoneLayer = document.getElementById('dropZoneLayer');
             if (dropZoneLayer) dropZoneLayer.innerHTML = '';
@@ -5051,6 +5073,11 @@
             const startLine = document.getElementById('startLine');
             startLine.style.display = 'block';
             startLine.style.top = (raceTopMargin + 5) + 'px';
+
+            // トンネルを表示（レースの中間地点）
+            const raceTunnel = document.getElementById('raceTunnel');
+            raceTunnel.style.display = 'block';
+            raceTunnel.style.top = (raceTopMargin + ladderHeight * 0.4) + 'px';
 
             // ドロップゾーンを生成（スタートラインの上に）
             createDropZones(count, columnWidth, raceTopMargin - 10);
