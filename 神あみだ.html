@@ -2361,6 +2361,39 @@
             100% { opacity: 0; transform: translateY(-20px) scale(0.5); }
         }
 
+        /* スピードライン */
+        @keyframes speedLineMove {
+            0% { top: -50px; opacity: 1; }
+            100% { top: 120vh; opacity: 0; }
+        }
+
+        /* 砂煙爆発 */
+        @keyframes dustExplode {
+            0% {
+                opacity: 1;
+                transform: translate(0, 0) scale(0.5);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(var(--dx), var(--dy)) scale(1.5);
+            }
+        }
+
+        /* 表彰台アニメーション */
+        @keyframes podiumSlideUp {
+            0% { transform: translateX(-50%) translateY(100%); }
+            100% { transform: translateX(-50%) translateY(0); }
+        }
+        @keyframes podiumSlideDown {
+            0% { transform: translateX(-50%) translateY(0); }
+            100% { transform: translateX(-50%) translateY(100%); }
+        }
+        @keyframes podiumBounce {
+            0% { opacity: 0; transform: translateY(-30px); }
+            60% { opacity: 1; transform: translateY(5px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
         /* レーステロップ */
         .race-telop {
             position: fixed;
@@ -3571,6 +3604,286 @@
             }
         }
 
+        // 勝利ファンファーレ
+        function playVictoryFanfare() {
+            if (!initAudio()) return;
+
+            // ファンファーレ風の音階
+            const notes = [523, 659, 784, 1047]; // C5, E5, G5, C6
+            notes.forEach((freq, i) => {
+                setTimeout(() => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    gain.gain.exponentialDecayTo && gain.gain.exponentialDecayTo(0.01, audioCtx.currentTime + 0.4);
+                    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.4);
+                }, i * 150);
+            });
+
+            // 最後に和音
+            setTimeout(() => {
+                [523, 659, 784, 1047].forEach(freq => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.8);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.8);
+                });
+            }, 600);
+        }
+
+        // カメラシェイク
+        function cameraShake(intensity = 10, duration = 300) {
+            const gameScreen = document.getElementById('gameScreen');
+            if (!gameScreen) return;
+
+            const startTime = Date.now();
+            const originalTransform = gameScreen.style.transform;
+
+            function shake() {
+                const elapsed = Date.now() - startTime;
+                if (elapsed > duration) {
+                    gameScreen.style.transform = originalTransform;
+                    return;
+                }
+
+                const decay = 1 - (elapsed / duration);
+                const x = (Math.random() - 0.5) * intensity * decay;
+                const y = (Math.random() - 0.5) * intensity * decay;
+                gameScreen.style.transform = `translate(${x}px, ${y}px)`;
+
+                requestAnimationFrame(shake);
+            }
+            shake();
+        }
+
+        // 心臓の鼓動
+        function startHeartbeat() {
+            if (!initAudio() || heartbeatInterval) return;
+
+            function playBeat() {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = 60;
+
+                gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+                gain.gain.exponentialDecayTo && gain.gain.exponentialDecayTo(0.01, audioCtx.currentTime + 0.15);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.15);
+
+                // ダブルビート（心臓のドクドク）
+                setTimeout(() => {
+                    if (!heartbeatInterval) return;
+                    const osc2 = audioCtx.createOscillator();
+                    const gain2 = audioCtx.createGain();
+                    osc2.type = 'sine';
+                    osc2.frequency.value = 50;
+                    gain2.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    gain2.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                    osc2.connect(gain2);
+                    gain2.connect(audioCtx.destination);
+                    osc2.start();
+                    osc2.stop(audioCtx.currentTime + 0.1);
+                }, 120);
+            }
+
+            playBeat();
+            heartbeatInterval = setInterval(playBeat, 600);
+        }
+
+        function stopHeartbeat() {
+            if (heartbeatInterval) {
+                clearInterval(heartbeatInterval);
+                heartbeatInterval = null;
+            }
+        }
+
+        // スピードライン表示
+        function showSpeedLines() {
+            if (speedLinesActive) return;
+            speedLinesActive = true;
+
+            const container = document.createElement('div');
+            container.id = 'speedLinesContainer';
+            container.style.cssText = `
+                position: fixed;
+                top: 0; left: 0; right: 0; bottom: 0;
+                pointer-events: none;
+                z-index: 500;
+                overflow: hidden;
+            `;
+            document.body.appendChild(container);
+
+            // 定期的にラインを追加
+            const lineInterval = setInterval(() => {
+                if (!speedLinesActive) {
+                    clearInterval(lineInterval);
+                    return;
+                }
+                for (let i = 0; i < 3; i++) {
+                    createSpeedLine(container);
+                }
+            }, 50);
+        }
+
+        function createSpeedLine(container) {
+            const line = document.createElement('div');
+            const x = Math.random() * 100;
+            const width = 2 + Math.random() * 3;
+            const opacity = 0.3 + Math.random() * 0.4;
+
+            line.style.cssText = `
+                position: absolute;
+                left: ${x}%;
+                top: -50px;
+                width: ${width}px;
+                height: 50px;
+                background: linear-gradient(to bottom, transparent, rgba(255,255,255,${opacity}), transparent);
+                animation: speedLineMove 0.3s linear forwards;
+            `;
+            container.appendChild(line);
+            setTimeout(() => line.remove(), 300);
+        }
+
+        function hideSpeedLines() {
+            speedLinesActive = false;
+            const container = document.getElementById('speedLinesContainer');
+            if (container) container.remove();
+        }
+
+        // 砂煙強化（ゴール時の大きな砂煙）
+        function createBigDustEffect(x, y) {
+            const gameScreen = document.getElementById('gameScreen');
+            if (!gameScreen) return;
+
+            for (let i = 0; i < 12; i++) {
+                const dust = document.createElement('div');
+                const angle = (i / 12) * Math.PI * 2;
+                const distance = 20 + Math.random() * 30;
+                const size = 15 + Math.random() * 20;
+
+                dust.style.cssText = `
+                    position: absolute;
+                    left: ${x}px;
+                    top: ${y}px;
+                    width: ${size}px;
+                    height: ${size}px;
+                    background: radial-gradient(circle, rgba(180, 150, 100, 0.8), transparent);
+                    border-radius: 50%;
+                    pointer-events: none;
+                    z-index: 1000;
+                    animation: dustExplode 0.6s ease-out forwards;
+                    --dx: ${Math.cos(angle) * distance}px;
+                    --dy: ${Math.sin(angle) * distance}px;
+                `;
+                gameScreen.appendChild(dust);
+                setTimeout(() => dust.remove(), 600);
+            }
+        }
+
+        // 表彰台演出
+        function showPodium(finishedPlayers) {
+            const podium = document.createElement('div');
+            podium.id = 'podiumDisplay';
+            podium.style.cssText = `
+                position: fixed;
+                bottom: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                display: flex;
+                align-items: flex-end;
+                justify-content: center;
+                gap: 10px;
+                z-index: 2000;
+                animation: podiumSlideUp 0.8s ease-out forwards;
+            `;
+
+            const podiumData = [
+                { rank: 1, height: 100, color: '#FFD700', order: 1 },
+                { rank: 0, height: 130, color: '#FFD700', order: 0 },
+                { rank: 2, height: 70, color: '#CD7F32', order: 2 }
+            ];
+
+            podiumData.forEach(({ rank, height, color, order }) => {
+                const player = finishedPlayers[rank];
+                if (!player) return;
+
+                const stand = document.createElement('div');
+                stand.style.cssText = `
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    order: ${order};
+                `;
+
+                // キャラクター表示
+                const charDisplay = document.createElement('div');
+                charDisplay.style.cssText = `
+                    font-size: 2.5rem;
+                    margin-bottom: 5px;
+                    animation: podiumBounce 0.5s ease-out ${0.8 + rank * 0.2}s forwards;
+                    opacity: 0;
+                `;
+                charDisplay.textContent = player.char || '🏃';
+
+                // 順位メダル
+                const medal = document.createElement('div');
+                const medals = ['👑', '🥈', '🥉'];
+                medal.style.cssText = `
+                    font-size: 1.5rem;
+                    margin-bottom: 3px;
+                `;
+                medal.textContent = medals[rank] || '';
+
+                // 台座
+                const platform = document.createElement('div');
+                platform.style.cssText = `
+                    width: 70px;
+                    height: ${height}px;
+                    background: linear-gradient(180deg, ${color} 0%, ${color}99 100%);
+                    border-radius: 5px 5px 0 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.5rem;
+                    font-weight: bold;
+                    color: white;
+                    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+                `;
+                platform.textContent = rank + 1;
+
+                stand.appendChild(charDisplay);
+                stand.appendChild(medal);
+                stand.appendChild(platform);
+                podium.appendChild(stand);
+            });
+
+            document.body.appendChild(podium);
+
+            // 5秒後に消える
+            setTimeout(() => {
+                podium.style.animation = 'podiumSlideDown 0.5s ease-in forwards';
+                setTimeout(() => podium.remove(), 500);
+            }, 5000);
+        }
+
         // 画面フラッシュ
         function flashScreen() {
             const flash = document.createElement('div');
@@ -3614,6 +3927,15 @@
         // 先頭キャラにキラキラ
         let currentLeaderIdx = -1;
         let raceFinishOrder = 0;  // ゴール順カウンター
+
+        // レース演出用の状態変数
+        let lastGapToLeader = Infinity;  // 追い上げ検出用
+        let catchUpTelopShown = false;   // 追い上げテロップ表示済みフラグ
+        let halfwayTelopShown = false;   // 中間地点テロップ表示済みフラグ
+        let deadHeatTelopShown = false;  // デッドヒートテロップ表示済みフラグ
+        let heartbeatInterval = null;    // 心臓の鼓動用
+        let speedLinesActive = false;    // スピードライン表示中
+
         function updateLeaderSparkle() {
             // 全キャラからキラキラを削除
             document.querySelectorAll('.leader-sparkle').forEach(el => el.remove());
@@ -3667,6 +3989,12 @@
         function resetRaceEffects() {
             currentLeaderIdx = -1;
             raceFinishOrder = 0;
+            lastGapToLeader = Infinity;
+            catchUpTelopShown = false;
+            halfwayTelopShown = false;
+            deadHeatTelopShown = false;
+            stopHeartbeat();
+            hideSpeedLines();
             document.querySelectorAll('.dust-particle, .leader-sparkle, .race-telop, .winner-crown').forEach(el => el.remove());
         }
 
@@ -3915,9 +4243,11 @@
             const placementUI = document.getElementById('charPlacementUI');
             if (placementUI) placementUI.classList.remove('show');
 
-            // レースBGMと歓声を停止
+            // レースBGMと各種演出を停止
             stopRaceBgm();
             stopFinalStretchCheer();
+            stopHeartbeat();
+            hideSpeedLines();
 
             // レースモード用背景を解除
             const gameScreen = document.getElementById('gameScreen');
@@ -7208,7 +7538,6 @@
             if (currentMode === 'race') {
                 updateLeaderSparkle();
 
-                // 最終ストレートの歓声処理
                 const movingPlayers = players.filter(p => p.state === 'moving');
                 if (movingPlayers.length > 0) {
                     // 先頭プレイヤーを取得
@@ -7218,6 +7547,39 @@
                     let logicH = canvas.height / dpr;
                     let tankBtm = logicH - 120; // 平均的なタンク位置
                     let finishYApprox = tankBtm - tankHeight;
+
+                    // コース全長の概算（スタートからゴールまで）
+                    const courseLength = finishYApprox - 100; // 開始位置を100と仮定
+                    const halfwayPoint = 100 + courseLength / 2;
+
+                    // ハーフウェイ実況（中間地点テロップ）
+                    if (!halfwayTelopShown && leader.y >= halfwayPoint) {
+                        halfwayTelopShown = true;
+                        showRaceTelop('🏁 折り返し地点！後半戦スタート！', 1200);
+                    }
+
+                    // 2位以降のプレイヤーを取得
+                    if (movingPlayers.length >= 2) {
+                        const sorted = [...movingPlayers].sort((a, b) => b.y - a.y);
+                        const first = sorted[0];
+                        const second = sorted[1];
+                        const gap = first.y - second.y;
+
+                        // 追い上げ演出（2位が急接近）
+                        if (!catchUpTelopShown && lastGapToLeader > 80 && gap < 40 && gap > 10) {
+                            catchUpTelopShown = true;
+                            if (second.charInfo) {
+                                showRaceTelop(`🔥 ${second.charInfo.animal}${second.charInfo.name}が追い上げる！`, 1000);
+                            }
+                        }
+                        lastGapToLeader = gap;
+
+                        // デッドヒート演出（並走）
+                        if (!deadHeatTelopShown && gap < 15 && leader.y > halfwayPoint) {
+                            deadHeatTelopShown = true;
+                            showRaceTelop('⚡ デッドヒート！並んだ！', 1000);
+                        }
+                    }
 
                     // 最終ストレート開始位置（ゴール前300px）
                     const finalStretchStart = finishYApprox - 300;
@@ -7230,6 +7592,16 @@
                         // ゴールに近づくほど音量UP (0.0 ~ 1.0)
                         const progress = Math.min(1, (leader.y - finalStretchStart) / 300);
                         updateFinalStretchCheerVolume(progress);
+
+                        // スピードライン表示
+                        if (!speedLinesActive) {
+                            showSpeedLines();
+                        }
+
+                        // 心臓の鼓動（ゴール直前）
+                        if (progress > 0.6 && !heartbeatInterval) {
+                            startHeartbeat();
+                        }
                     }
                 }
             }
@@ -7282,10 +7654,12 @@
                 cancelAnimationFrame(animationId);
                 animationId = null;
 
-                // 移動音とレースBGMを停止
+                // 移動音とレースBGM、各種演出を停止
                 stopMoveSound();
                 stopRaceBgm();
                 stopFinalStretchCheer();
+                stopHeartbeat();
+                hideSpeedLines();
 
                 // 速度は維持（リセットしない）
 
@@ -7496,15 +7870,22 @@
                 if (currentMode === 'race' && p.finishOrder === undefined) {
                     p.finishOrder = raceFinishOrder++;
 
-                    // ゴール毎に両サイドから紙吹雪
-                    createSideConfetti();
+                    // ゴール毎の演出
+                    createSideConfetti();      // 両サイドから紙吹雪
+                    cameraShake(8, 250);       // カメラシェイク
 
-                    // 1位ゴール時にテロップ表示
+                    // 砂煙エフェクト（ゴール位置）
+                    const charX = (p.xIdx * columnWidth) + (columnWidth / 2);
+                    createBigDustEffect(charX, finishY - 20);
+
+                    // 1位ゴール時
                     if (p.finishOrder === 0 && p.charInfo) {
-                        // 2位との差を計算
+                        // 勝利ファンファーレ
+                        playVictoryFanfare();
+
+                        // 2位との差を計算してテロップ
                         const otherPlayers = players.filter(pl => pl !== p && pl.char && pl.state === 'moving');
                         if (otherPlayers.length > 0) {
-                            // 最も進んでいる2位プレイヤーを探す
                             const secondPlace = otherPlayers.reduce((max, pl) => pl.y > max.y ? pl : max, otherPlayers[0]);
                             const gap = finishY - secondPlace.y;
 
@@ -8378,6 +8759,11 @@
                             crown.innerHTML = '👑';
                             winnerEl.appendChild(crown);
                         }
+                    }
+
+                    // 表彰台演出（3人以上の場合）
+                    if (finishedPlayers.length >= 3) {
+                        setTimeout(() => showPodium(finishedPlayers), 500);
                     }
                 } else {
                     // ノーマルモード：個別結果
