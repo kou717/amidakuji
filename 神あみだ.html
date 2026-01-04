@@ -5424,6 +5424,9 @@
 
         // レース開始演出
         function startRaceCountdown() {
+            // 配置UIを非表示
+            hideCharPlacementUI();
+
             const overlay = document.getElementById('raceCountdownOverlay');
             const text = document.getElementById('countdownText');
             overlay.classList.add('show');
