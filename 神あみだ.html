@@ -3567,39 +3567,10 @@
             }
         }
 
-        // 追い抜き検出用
-        let lastPositions = {};
-        function checkOvertake() {
-            if (currentMode !== 'race') return;
-
-            const currentPositions = {};
-            players.forEach((p, i) => {
-                if (p.state === 'moving' && p.char) {
-                    currentPositions[i] = p.y;
-                }
-            });
-
-            // 順位変動をチェック
-            const prevRanks = Object.entries(lastPositions).sort((a, b) => b[1] - a[1]);
-            const currRanks = Object.entries(currentPositions).sort((a, b) => b[1] - a[1]);
-
-            if (prevRanks.length > 1 && currRanks.length > 1) {
-                // 2位以下が1位を追い抜いた場合
-                if (prevRanks[0][0] !== currRanks[0][0]) {
-                    const newLeader = players[currRanks[0][0]];
-                    if (newLeader && newLeader.charInfo) {
-                        showRaceTelop(`ゴボウ抜き！🔥`);
-                    }
-                }
-            }
-
-            lastPositions = currentPositions;
-        }
 
         // レース中の演出リセット
         function resetRaceEffects() {
             currentLeaderIdx = -1;
-            lastPositions = {};
             raceFinishOrder = 0;
             document.querySelectorAll('.dust-particle, .leader-sparkle, .race-telop, .winner-crown').forEach(el => el.remove());
         }
@@ -7136,7 +7107,6 @@
             // レース中の演出更新
             if (currentMode === 'race') {
                 updateLeaderSparkle();
-                checkOvertake();
             }
 
             if (targetY > 0) {
