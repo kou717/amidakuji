@@ -7378,6 +7378,31 @@
                 // ゴール順を記録（レースモード用）
                 if (currentMode === 'race' && p.finishOrder === undefined) {
                     p.finishOrder = raceFinishOrder++;
+
+                    // 1位ゴール時にテロップ表示
+                    if (p.finishOrder === 0 && p.charInfo) {
+                        // 2位との差を計算
+                        const otherPlayers = players.filter(pl => pl !== p && pl.char && pl.state === 'moving');
+                        if (otherPlayers.length > 0) {
+                            // 最も進んでいる2位プレイヤーを探す
+                            const secondPlace = otherPlayers.reduce((max, pl) => pl.y > max.y ? pl : max, otherPlayers[0]);
+                            const gap = finishY - secondPlace.y;
+
+                            let telopText = '';
+                            if (gap > 300) {
+                                telopText = `🏆 圧倒的な差で ${p.charInfo.animal}${p.charInfo.name}が1位！`;
+                            } else if (gap > 150) {
+                                telopText = `🏆 大きく引き離して ${p.charInfo.animal}${p.charInfo.name}が1位！`;
+                            } else if (gap > 50) {
+                                telopText = `🏆 ${p.charInfo.animal}${p.charInfo.name}が1位でゴール！`;
+                            } else {
+                                telopText = `🏆 僅差で ${p.charInfo.animal}${p.charInfo.name}が逃げ切り1位！`;
+                            }
+                            showRaceTelop(telopText, 1500);
+                        } else {
+                            showRaceTelop(`🏆 ${p.charInfo.animal}${p.charInfo.name}が1位でゴール！`, 1500);
+                        }
+                    }
                 }
 
                 // タンクアニメーション開始（通常モードのみ）
