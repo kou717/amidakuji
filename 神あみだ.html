@@ -3499,9 +3499,9 @@
             const dropZoneLayer = document.getElementById('dropZoneLayer');
             if (dropZoneLayer) dropZoneLayer.innerHTML = '';
 
-            // キャラクター配置UIをクリア
+            // キャラクター配置UIを非表示（クラスで制御）
             const placementUI = document.getElementById('charPlacementUI');
-            if (placementUI) placementUI.style.display = 'none';
+            if (placementUI) placementUI.classList.remove('show');
 
             // topMarginをリセット
             topMargin = 75;
