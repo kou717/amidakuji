@@ -3461,12 +3461,15 @@
             // 1%の確率でヘブン＆ヘル、99%で運動会BGM
             const random = Math.random() * 100;
             let bgmFile;
+            let bgmVolume;
             if (random < 1) {
                 currentBgmType = 'heaven';
                 bgmFile = 'ヘブン＆ヘル.mp3';
+                bgmVolume = 0.4;
             } else {
                 currentBgmType = 'undoukai';
                 bgmFile = '運動会.mp3';
+                bgmVolume = 0.25;
             }
 
             // 前のオーディオがあれば停止
@@ -3477,7 +3480,7 @@
 
             raceBgmAudio = new Audio(bgmFile);
             raceBgmAudio.loop = true;
-            raceBgmAudio.volume = 0.5;
+            raceBgmAudio.volume = bgmVolume;
             raceBgmAudio.play().catch(e => console.log('BGM再生エラー:', e));
         }
 
