@@ -3239,7 +3239,7 @@
             if (!initAudio()) return;
 
             moveSoundGain = audioCtx.createGain();
-            moveSoundGain.gain.value = 0.15;
+            moveSoundGain.gain.value = 0.5;
             moveSoundGain.connect(audioCtx.destination);
 
             playMoveTick();
@@ -3400,7 +3400,7 @@
             isBgmPlaying = true;
 
             bgmGain = audioCtx.createGain();
-            bgmGain.gain.value = 0.35;
+            bgmGain.gain.value = 0.7;
             bgmGain.connect(audioCtx.destination);
 
             playBgmLoop();
@@ -4064,7 +4064,7 @@
             isSetupBgmPlaying = true;
 
             setupBgmGain = audioCtx.createGain();
-            setupBgmGain.gain.value = 0.2;
+            setupBgmGain.gain.value = 0.55;
             setupBgmGain.connect(audioCtx.destination);
 
             playSetupBgmLoop();
