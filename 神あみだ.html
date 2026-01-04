@@ -4615,6 +4615,10 @@
 
                     // ドン！ であみだくじのてっぺんに素早く移動してすぐレース開始
                     if (sequence[i] === 'ドン！') {
+                        // BGMをドン！と同時に開始
+                        stopBgm();
+                        startRaceBgm();
+
                         charElements.forEach(({ el, player, idx }) => {
                             el.style.transition = 'top 0.15s ease-in';
                             const startX = (player.xIdx * columnWidth) + (columnWidth / 2);
@@ -6756,11 +6760,7 @@
             isAnimating = true;
             document.getElementById('curtain').style.opacity = 0;
 
-            // 通常BGMを停止してレースBGMを開始
-            stopBgm();
-            startRaceBgm();
-
-            // 移動音を開始
+            // 移動音を開始（BGMはドン！で既に開始済み）
             startMoveSound();
 
             animateLoop();
