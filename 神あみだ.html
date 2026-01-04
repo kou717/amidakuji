@@ -4170,7 +4170,7 @@
             columnWidth = logicalWidth / count;
 
             // レースモード用にドロップゾーン分のスペースを確保
-            const raceTopMargin = 340;
+            const raceTopMargin = 235;
             topMargin = raceTopMargin;  // グローバル変数を更新
 
             let baseSteps = 50;
@@ -4240,10 +4240,10 @@
             // スタートラインを表示（あみだくじの少し上に）
             const startLine = document.getElementById('startLine');
             startLine.style.display = 'block';
-            startLine.style.top = (raceTopMargin - 50) + 'px';
+            startLine.style.top = (raceTopMargin - 10) + 'px';
 
             // ドロップゾーンを生成（スタートラインの上に）
-            createDropZones(count, columnWidth, raceTopMargin - 100);
+            createDropZones(count, columnWidth, raceTopMargin - 35);
 
             // 早送りボタンを表示（速度リセット）
             resetSpeed();
