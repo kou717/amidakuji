@@ -2307,15 +2307,11 @@
             color: white; box-shadow: 0 5px 20px rgba(84, 160, 255, 0.4);
         }
 
-        /* ゲーム画面の背景（土っぽい地面 - パフォーマンス最適化版） */
+        /* ゲーム画面の背景（土の画像） */
         #gameScreen {
-            background: linear-gradient(180deg,
-                #C4A77D 0%,
-                #B8986A 20%,
-                #A88B5C 40%,
-                #9E7F52 60%,
-                #8B7046 80%,
-                #7A6340 100%);
+            background-image: url('ground.jpg');
+            background-size: cover;
+            background-position: center;
             position: relative;
         }
         #amidaCanvas {
