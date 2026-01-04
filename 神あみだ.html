@@ -2361,14 +2361,10 @@
             100% { opacity: 0; transform: translateY(-20px) scale(0.5); }
         }
 
-        /* スピードライン（横向き集中線） */
-        @keyframes speedLineLeft {
-            0% { left: -150px; opacity: 1; }
-            100% { left: 120vw; opacity: 0; }
-        }
-        @keyframes speedLineRight {
-            0% { right: -150px; opacity: 1; }
-            100% { right: 120vw; opacity: 0; }
+        /* スピードライン（縦方向・集中線風） */
+        @keyframes speedLineDown {
+            0% { top: -200px; opacity: 1; }
+            100% { top: 110vh; opacity: 0; }
         }
 
         /* 砂煙爆発 */
@@ -3750,27 +3746,29 @@
         function createSpeedLine(container) {
             const line = document.createElement('div');
 
-            // 画面の左右どちらかから出る
+            // 画面端から斜め下に流れる（走行方向に合わせて）
             const fromLeft = Math.random() < 0.5;
-            const y = Math.random() * 100;
+            const x = fromLeft ? Math.random() * 25 : 75 + Math.random() * 25;
             const length = 80 + Math.random() * 120;
-            const height = 2 + Math.random() * 2;
-            const opacity = 0.4 + Math.random() * 0.3;
-            const duration = 0.15 + Math.random() * 0.1;
+            const width = 1.5 + Math.random() * 2;
+            const opacity = 0.25 + Math.random() * 0.25;
+            const duration = 0.25 + Math.random() * 0.15;
+            const angle = fromLeft ? 12 : -12; // 中央に向かって斜め
 
             line.style.cssText = `
                 position: absolute;
-                ${fromLeft ? 'left: -150px' : 'right: -150px'};
-                top: ${y}%;
-                width: ${length}px;
-                height: ${height}px;
-                background: linear-gradient(${fromLeft ? 'to right' : 'to left'},
+                left: ${x}%;
+                top: -${length}px;
+                width: ${width}px;
+                height: ${length}px;
+                background: linear-gradient(to bottom,
                     transparent,
                     rgba(255,255,255,${opacity}) 20%,
                     rgba(255,255,255,${opacity}) 80%,
                     transparent);
-                border-radius: ${height}px;
-                animation: ${fromLeft ? 'speedLineLeft' : 'speedLineRight'} ${duration}s linear forwards;
+                border-radius: ${width}px;
+                transform: rotate(${angle}deg);
+                animation: speedLineDown ${duration}s linear forwards;
             `;
             container.appendChild(line);
             setTimeout(() => line.remove(), duration * 1000);
