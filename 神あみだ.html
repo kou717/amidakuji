@@ -3267,214 +3267,26 @@
             }
         }
 
-        // レース用BGM（運動会風の豪華なBGM）
-        let isRaceBgmPlaying = false;
-        let raceBgmGain = null;
-        let raceBgmTimeout = null;
-        let raceBgmOscillators = [];
+        // レース用BGM（外部ファイル再生）
+        let raceBgmAudio = null;
 
         function startRaceBgm() {
             if (!isSoundEnabled) return;
-            if (isRaceBgmPlaying) return;
-            if (!initAudio()) return;
-            isRaceBgmPlaying = true;
 
-            raceBgmGain = audioCtx.createGain();
-            raceBgmGain.gain.value = 0.4;
-            raceBgmGain.connect(audioCtx.destination);
-
-            playRaceBgmLoop();
-        }
-
-        function playRaceBgmLoop() {
-            if (!isRaceBgmPlaying) return;
-
-            const bpm = 150;
-            const beat = 60 / bpm;
-            const now = audioCtx.currentTime;
-
-            // 運動会風メロディ（天国と地獄風のワクワクするフレーズ）
-            const melody = [
-                { note: 659, duration: 0.5 },  // E5
-                { note: 659, duration: 0.25 }, // E5
-                { note: 659, duration: 0.25 }, // E5
-                { note: 523, duration: 0.5 },  // C5
-                { note: 659, duration: 0.5 },  // E5
-                { note: 784, duration: 1 },    // G5
-                { note: 392, duration: 1 },    // G4
-                { note: 523, duration: 0.5 },  // C5
-                { note: 392, duration: 0.5 },  // G4
-                { note: 330, duration: 0.5 },  // E4
-                { note: 440, duration: 0.5 },  // A4
-                { note: 494, duration: 0.5 },  // B4
-                { note: 466, duration: 0.25 }, // Bb4
-                { note: 440, duration: 0.75 }, // A4
-            ];
-
-            // ベースライン
-            const bassLine = [
-                { note: 131, duration: 0.5 },  // C3
-                { note: 131, duration: 0.5 },  // C3
-                { note: 147, duration: 0.5 },  // D3
-                { note: 147, duration: 0.5 },  // D3
-                { note: 165, duration: 0.5 },  // E3
-                { note: 165, duration: 0.5 },  // E3
-                { note: 196, duration: 1 },    // G3
-                { note: 131, duration: 0.5 },  // C3
-                { note: 196, duration: 0.5 },  // G3
-                { note: 165, duration: 0.5 },  // E3
-                { note: 175, duration: 0.5 },  // F3
-                { note: 165, duration: 0.5 },  // E3
-                { note: 147, duration: 0.5 },  // D3
-                { note: 131, duration: 1 },    // C3
-            ];
-
-            let time = now;
-
-            // メロディを再生（ブラス風サウンド）
-            melody.forEach((m, i) => {
-                const osc = audioCtx.createOscillator();
-                const osc2 = audioCtx.createOscillator();
-                const noteGain = audioCtx.createGain();
-                const filter = audioCtx.createBiquadFilter();
-
-                filter.type = 'lowpass';
-                filter.frequency.value = 2000;
-
-                osc.type = 'sawtooth';
-                osc2.type = 'square';
-                osc.frequency.value = m.note;
-                osc2.frequency.value = m.note * 1.001; // 少しデチューン
-
-                osc.connect(filter);
-                osc2.connect(filter);
-                filter.connect(noteGain);
-                noteGain.connect(raceBgmGain);
-
-                const duration = m.duration * beat;
-                noteGain.gain.setValueAtTime(0.3, time);
-                noteGain.gain.setValueAtTime(0.25, time + 0.05);
-                noteGain.gain.exponentialRampToValueAtTime(0.01, time + duration * 0.95);
-
-                osc.start(time);
-                osc.stop(time + duration);
-                osc2.start(time);
-                osc2.stop(time + duration);
-
-                raceBgmOscillators.push(osc, osc2);
-                time += duration;
-            });
-
-            // ベースを再生
-            let bassTime = now;
-            bassLine.forEach((b) => {
-                const osc = audioCtx.createOscillator();
-                const noteGain = audioCtx.createGain();
-
-                osc.type = 'triangle';
-                osc.frequency.value = b.note;
-
-                osc.connect(noteGain);
-                noteGain.connect(raceBgmGain);
-
-                const duration = b.duration * beat;
-                noteGain.gain.setValueAtTime(0.35, bassTime);
-                noteGain.gain.exponentialRampToValueAtTime(0.01, bassTime + duration * 0.9);
-
-                osc.start(bassTime);
-                osc.stop(bassTime + duration);
-
-                raceBgmOscillators.push(osc);
-                bassTime += duration;
-            });
-
-            // ドラム（スネアとバスドラム）
-            for (let i = 0; i < 14; i++) {
-                const drumTime = now + i * beat * 0.5;
-
-                // バスドラム（偶数拍）
-                if (i % 2 === 0) {
-                    const kickOsc = audioCtx.createOscillator();
-                    const kickGain = audioCtx.createGain();
-                    kickOsc.type = 'sine';
-                    kickOsc.frequency.setValueAtTime(150, drumTime);
-                    kickOsc.frequency.exponentialRampToValueAtTime(50, drumTime + 0.1);
-                    kickOsc.connect(kickGain);
-                    kickGain.connect(raceBgmGain);
-                    kickGain.gain.setValueAtTime(0.5, drumTime);
-                    kickGain.gain.exponentialRampToValueAtTime(0.01, drumTime + 0.15);
-                    kickOsc.start(drumTime);
-                    kickOsc.stop(drumTime + 0.15);
-                    raceBgmOscillators.push(kickOsc);
-                }
-
-                // スネア（奇数拍）
-                if (i % 2 === 1) {
-                    const bufferSize = audioCtx.sampleRate * 0.1;
-                    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-                    const data = buffer.getChannelData(0);
-                    for (let j = 0; j < bufferSize; j++) {
-                        data[j] = Math.random() * 2 - 1;
-                    }
-                    const noise = audioCtx.createBufferSource();
-                    noise.buffer = buffer;
-                    const snareGain = audioCtx.createGain();
-                    const snareFilter = audioCtx.createBiquadFilter();
-                    snareFilter.type = 'highpass';
-                    snareFilter.frequency.value = 1000;
-                    noise.connect(snareFilter);
-                    snareFilter.connect(snareGain);
-                    snareGain.connect(raceBgmGain);
-                    snareGain.gain.setValueAtTime(0.3, drumTime);
-                    snareGain.gain.exponentialRampToValueAtTime(0.01, drumTime + 0.1);
-                    noise.start(drumTime);
-                    noise.stop(drumTime + 0.1);
-                }
-
-                // ハイハット（全拍）
-                const hihatSize = audioCtx.sampleRate * 0.03;
-                const hihatBuffer = audioCtx.createBuffer(1, hihatSize, audioCtx.sampleRate);
-                const hihatData = hihatBuffer.getChannelData(0);
-                for (let j = 0; j < hihatSize; j++) {
-                    hihatData[j] = Math.random() * 2 - 1;
-                }
-                const hihat = audioCtx.createBufferSource();
-                hihat.buffer = hihatBuffer;
-                const hihatGain = audioCtx.createGain();
-                const hihatFilter = audioCtx.createBiquadFilter();
-                hihatFilter.type = 'highpass';
-                hihatFilter.frequency.value = 8000;
-                hihat.connect(hihatFilter);
-                hihatFilter.connect(hihatGain);
-                hihatGain.connect(raceBgmGain);
-                hihatGain.gain.setValueAtTime(0.15, drumTime);
-                hihatGain.gain.exponentialRampToValueAtTime(0.01, drumTime + 0.05);
-                hihat.start(drumTime);
-                hihat.stop(drumTime + 0.05);
+            if (!raceBgmAudio) {
+                raceBgmAudio = new Audio('ヘブン＆ヘル.mp3');
+                raceBgmAudio.loop = true;
+                raceBgmAudio.volume = 0.5;
             }
 
-            // ループ
-            const loopDuration = time - now;
-            raceBgmTimeout = setTimeout(() => {
-                if (isRaceBgmPlaying) {
-                    raceBgmOscillators = [];
-                    playRaceBgmLoop();
-                }
-            }, loopDuration * 1000);
+            raceBgmAudio.currentTime = 0;
+            raceBgmAudio.play().catch(e => console.log('BGM再生エラー:', e));
         }
 
         function stopRaceBgm() {
-            isRaceBgmPlaying = false;
-            if (raceBgmTimeout) {
-                clearTimeout(raceBgmTimeout);
-                raceBgmTimeout = null;
-            }
-            raceBgmOscillators.forEach(osc => {
-                try { osc.stop(); } catch(e) {}
-            });
-            raceBgmOscillators = [];
-            if (raceBgmGain) {
-                raceBgmGain.gain.value = 0;
+            if (raceBgmAudio) {
+                raceBgmAudio.pause();
+                raceBgmAudio.currentTime = 0;
             }
         }
 
