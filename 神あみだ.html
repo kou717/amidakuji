@@ -2308,13 +2308,18 @@
 
         /* ゲーム画面の背景（土っぽい地面） */
         #gameScreen {
-            background: linear-gradient(180deg,
-                #8B7355 0%,
-                #7A6548 20%,
-                #6B5A3E 40%,
-                #5C4E35 60%,
-                #4D422D 80%,
-                #3E3625 100%);
+            background:
+                /* 細かい砂利・土の粒感 */
+                repeating-radial-gradient(circle at 2px 2px, rgba(160, 130, 100, 0.3) 0px, transparent 1px, transparent 3px),
+                repeating-radial-gradient(circle at 5px 4px, rgba(120, 90, 60, 0.2) 0px, transparent 1px, transparent 4px),
+                /* ベースの土色グラデーション */
+                linear-gradient(180deg,
+                    #C4A77D 0%,
+                    #B8986A 15%,
+                    #A88B5C 30%,
+                    #9E7F52 50%,
+                    #8B7046 70%,
+                    #7A6340 100%);
             position: relative;
         }
         #gameScreen::before {
@@ -2322,13 +2327,18 @@
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
             background-image:
-                radial-gradient(circle at 10% 20%, rgba(139, 115, 85, 0.3) 0%, transparent 20%),
-                radial-gradient(circle at 30% 60%, rgba(90, 70, 50, 0.2) 0%, transparent 15%),
-                radial-gradient(circle at 50% 40%, rgba(120, 95, 65, 0.25) 0%, transparent 18%),
-                radial-gradient(circle at 70% 80%, rgba(100, 80, 55, 0.2) 0%, transparent 22%),
-                radial-gradient(circle at 90% 30%, rgba(80, 65, 45, 0.3) 0%, transparent 16%),
-                radial-gradient(circle at 25% 85%, rgba(110, 90, 60, 0.2) 0%, transparent 20%),
-                radial-gradient(circle at 75% 15%, rgba(95, 75, 52, 0.25) 0%, transparent 17%);
+                /* 大きな土のムラ */
+                radial-gradient(ellipse 80px 40px at 15% 25%, rgba(180, 150, 110, 0.4) 0%, transparent 70%),
+                radial-gradient(ellipse 60px 30px at 85% 35%, rgba(140, 110, 75, 0.3) 0%, transparent 70%),
+                radial-gradient(ellipse 100px 50px at 45% 65%, rgba(160, 130, 95, 0.35) 0%, transparent 70%),
+                radial-gradient(ellipse 70px 35px at 75% 85%, rgba(130, 100, 70, 0.3) 0%, transparent 70%),
+                radial-gradient(ellipse 50px 25px at 25% 75%, rgba(170, 140, 100, 0.35) 0%, transparent 70%),
+                /* 小さな石・砂利の影 */
+                radial-gradient(circle 3px at 10% 40%, rgba(100, 75, 50, 0.4) 0%, transparent 100%),
+                radial-gradient(circle 2px at 30% 20%, rgba(90, 65, 45, 0.3) 0%, transparent 100%),
+                radial-gradient(circle 4px at 60% 50%, rgba(110, 85, 55, 0.35) 0%, transparent 100%),
+                radial-gradient(circle 2px at 80% 70%, rgba(95, 70, 48, 0.3) 0%, transparent 100%),
+                radial-gradient(circle 3px at 50% 90%, rgba(105, 80, 52, 0.35) 0%, transparent 100%);
             pointer-events: none;
             z-index: 0;
         }
