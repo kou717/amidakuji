@@ -5407,18 +5407,13 @@
             // 1人以上配置されていればスタート可能
             document.getElementById('raceBtn').disabled = (placedCount === 0);
 
-            // 全キャラクターが配置されたらメッセージ更新（UIは表示したまま入れ替え可能）
+            // 全キャラクターが配置されたらUIを非表示
             const allCharsPlaced = raceSelectedChars.every(char =>
                 startLineAssignments.includes(char)
             );
 
-            const instruction = document.querySelector('#charPlacementUI p');
-            if (instruction) {
-                if (allCharsPlaced) {
-                    instruction.innerHTML = '配置完了！<br>ドラッグで入れ替えできます';
-                } else {
-                    instruction.innerHTML = 'キャラクターをドラッグして<br>好きなスタートラインに配置しよう！';
-                }
+            if (allCharsPlaced) {
+                hideCharPlacementUI();
             }
         }
 
