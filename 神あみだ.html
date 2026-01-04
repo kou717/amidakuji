@@ -2040,48 +2040,33 @@
         }
         #templateEditorOverlay.open { display: flex; }
         .template-editor-card {
-            background: white; width: 90%; max-width: 380px; height: 85vh;
-            border-radius: 24px; box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+            background: white; width: 92%; max-width: 400px; height: 85vh;
+            border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
             display: flex; flex-direction: column; overflow: hidden;
-            position: relative;
-        }
-        .template-editor-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            border-radius: 24px 24px 0 0;
         }
         .template-editor-header {
             display: flex; align-items: center; gap: 10px;
-            padding: 20px;
-            background: white;
-            border-bottom: 1px solid #eee;
-            flex-shrink: 0;
+            padding: 15px 20px; border-bottom: 1px solid #eee; flex-shrink: 0;
         }
-        .template-editor-header h3 {
-            margin: 0; font-size: 1.2rem; flex: 1; text-align: center;
-            color: #333; font-weight: bold;
-        }
+        .template-editor-header h3 { margin: 0; font-size: 1.1rem; flex: 1; text-align: center; }
         .te-edit-toggle-btn {
             padding: 8px 16px; border-radius: 20px;
             background: #f0f0f0; color: #333; border: none;
             font-size: 0.85rem; cursor: pointer; white-space: nowrap;
             transition: all 0.2s;
         }
-        .te-edit-toggle-btn:active { transform: scale(0.95); background: #e0e0e0; }
+        .te-edit-toggle-btn:active { transform: scale(0.95); }
         .te-edit-toggle-btn.active {
-            background: #667eea; color: white;
+            background: #54a0ff; color: white;
         }
         .te-back-btn, .te-close-btn {
             width: 36px; height: 36px; border-radius: 50%; border: none;
-            background: #f0f0f0; color: #333;
+            background: #f0f0f0; color: #888;
             font-size: 1.2rem; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
             transition: all 0.2s;
         }
-        .te-back-btn:active, .te-close-btn:active { transform: scale(0.9); background: #e0e0e0; }
+        .te-back-btn:active, .te-close-btn:active { transform: scale(0.9); }
         .te-back-btn.hidden { visibility: hidden; }
         .te-hint-area {
             padding: 12px 15px; background: white;
@@ -2095,17 +2080,17 @@
         .te-favorites-scroll::-webkit-scrollbar { display: none; }
         .te-fav-item {
             display: flex; align-items: center; gap: 6px;
-            padding: 10px 14px; background: #f5f5f5;
-            border-radius: 12px; border: none;
+            padding: 8px 12px; background: white;
+            border-radius: 20px; border: 2px solid #ffd54f;
             font-size: 0.85rem; cursor: pointer;
             white-space: nowrap; flex-shrink: 0;
             transition: all 0.2s;
         }
-        .te-fav-item:active { transform: scale(0.95); background: #e8e8e8; }
+        .te-fav-item:active { transform: scale(0.95); }
         .te-fav-color { width: 6px; height: 18px; border-radius: 3px; }
         .te-no-fav { color: #999; font-size: 0.85rem; text-align: center; padding: 8px 0; }
         .template-editor-content {
-            flex: 1; overflow-y: scroll; padding: 15px; background: #fafafa;
+            flex: 1; overflow-y: scroll; padding: 10px;
         }
         .template-editor-footer {
             padding: 15px; background: white;
