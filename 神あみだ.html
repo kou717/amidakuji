@@ -3534,6 +3534,15 @@
 
             if (currentMode !== 'race') return;
 
+            // 走行中のプレイヤーを取得
+            const movingPlayers = players.filter(p => p.state === 'moving' && p.char);
+
+            // 2人以上走っていないと「先頭」の意味がない
+            if (movingPlayers.length < 2) {
+                currentLeaderIdx = -1;
+                return;
+            }
+
             // 先頭を探す
             let maxY = -1;
             let leaderIdx = -1;
