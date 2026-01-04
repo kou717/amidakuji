@@ -2307,15 +2307,20 @@
             color: white; box-shadow: 0 5px 20px rgba(84, 160, 255, 0.4);
         }
 
-        /* ゲーム画面の背景（土の画像） */
+        /* ゲーム画面の背景（デフォルト） */
         #gameScreen {
+            position: relative;
+            background: #f5f5f5;
+        }
+
+        /* レースモード時の背景（土の画像） */
+        #gameScreen.race-mode {
             background-image: url('ground.jpg');
             background-size: 100% auto;
             background-repeat: repeat-y;
             background-position: top center;
-            position: relative;
         }
-        #gameScreen::after {
+        #gameScreen.race-mode::after {
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -3538,6 +3543,10 @@
             // レースBGMを停止
             stopRaceBgm();
 
+            // レースモード用背景を解除
+            const gameScreen = document.getElementById('gameScreen');
+            if (gameScreen) gameScreen.classList.remove('race-mode');
+
             // topMarginをリセット
             topMargin = 75;
 
@@ -4184,6 +4193,9 @@
 
             currentMode = 'race';
             startedPlayerCount = 0;
+
+            // レースモード用背景を適用
+            document.getElementById('gameScreen').classList.add('race-mode');
 
             // BGM開始
             startBgm();
