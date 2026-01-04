@@ -4561,12 +4561,12 @@
                     text.offsetHeight; // reflow
                     text.style.animation = 'countdownPop 0.5s ease-out';
 
-                    // いちについて〜 で10px下にゆっくり移動
+                    // いちについて〜 で30px下にゆっくり移動
                     if (sequence[i] === 'いちについて〜') {
                         charElements.forEach(({ el }) => {
                             el.style.transition = 'top 0.8s ease-out';
                             const currentTop = parseFloat(el.style.top) || 0;
-                            el.style.top = (currentTop + 10) + 'px';
+                            el.style.top = (currentTop + 30) + 'px';
                         });
                     }
 
