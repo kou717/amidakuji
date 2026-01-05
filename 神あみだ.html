@@ -8117,6 +8117,14 @@
                     if (p.wasInWaterPuddle === undefined) p.wasInWaterPuddle = false;
                     if (p.slippedTrails === undefined) p.slippedTrails = [];
                     if (p.slipTimer === undefined) p.slipTimer = 0;
+                    if (p.obstacleTimer === undefined) p.obstacleTimer = 0;
+
+                    // 障害物で止まっている間はカウントダウン
+                    if (p.obstacleTimer > 0) {
+                        p.obstacleTimer--;
+                        if (p.y > targetY) targetY = p.y;
+                        return; // forEachではcontinueの代わりにreturn
+                    }
 
                     // スリップ中は一瞬止まる
                     if (p.slipTimer > 0) {
@@ -8149,25 +8157,34 @@
                         // 砂山にいるかチェック
                         const inSandHill = isInSandHill(playerX, p.y);
 
-                        // 砂山に入った時にエフェクト表示
+                        // 砂山に入った時 - 2.5秒間止まる
                         if (!p.wasInSandHill && inSandHill) {
                             showSandEffect(playerX, p.y);
+                            p.obstacleTimer = 150; // 2.5秒 (60fps)
+                            p.wasInSandHill = true;
+                            break; // このフレームは移動しない
                         }
-                        p.wasInSandHill = inSandHill;
+                        // 砂山を抜けたらフラグリセット
+                        if (p.wasInSandHill && !inSandHill) {
+                            p.wasInSandHill = false;
+                        }
 
                         // 水たまりにいるかチェック
                         const inWaterPuddle = isInWaterPuddle(playerX, p.y);
 
-                        // 水たまりに入った時にエフェクト表示
+                        // 水たまりに入った時 - 1.2秒間止まる
                         if (!p.wasInWaterPuddle && inWaterPuddle) {
                             showWaterEffect(playerX, p.y);
+                            p.obstacleTimer = 72; // 1.2秒 (60fps)
+                            p.wasInWaterPuddle = true;
+                            break; // このフレームは移動しない
                         }
 
                         // 水たまりから出た時に水跡を作成
                         if (p.wasInWaterPuddle && !inWaterPuddle) {
                             createWaterTrail(playerX, p.y, players.indexOf(p));
+                            p.wasInWaterPuddle = false;
                         }
-                        p.wasInWaterPuddle = inWaterPuddle;
 
                         // 水跡でスリップチェック
                         if (!inWaterPuddle) {
@@ -8200,14 +8217,7 @@
                         // 横移動は movePlayer内で 4.0 固定
 
                         // 1倍速の速度で移動（倍率は繰り返し回数で対応）
-                        // 砂山または水たまりにいる場合は減速
-                        let actualSpeed = p.currentSpeed;
-                        if (inSandHill) {
-                            actualSpeed *= SAND_HILL_SLOWDOWN;
-                        } else if (inWaterPuddle) {
-                            actualSpeed *= WATER_PUDDLE_SLOWDOWN;
-                        }
-                        movePlayer(p, actualSpeed);
+                        movePlayer(p, p.currentSpeed);
                     }
 
                     if (p.y > targetY) targetY = p.y;
