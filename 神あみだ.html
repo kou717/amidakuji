@@ -1562,6 +1562,22 @@
             width: 100%;
             height: auto;
         }
+        /* トンネル下の影 */
+        #raceTunnel::after {
+            content: '';
+            position: absolute;
+            bottom: -80px;
+            left: 10%;
+            width: 80%;
+            height: 80px;
+            background: linear-gradient(to bottom,
+                rgba(50, 40, 30, 0.7) 0%,
+                rgba(50, 40, 30, 0.4) 30%,
+                rgba(50, 40, 30, 0.15) 60%,
+                transparent 100%);
+            border-radius: 0 0 50% 50%;
+            z-index: -1;
+        }
 
         /* チェッカーフラッグ柄のスタートライン */
         #startLine {
