@@ -1624,6 +1624,45 @@
             100% { opacity: 0; }
         }
 
+        /* 砂エフェクト */
+        .sand-effect {
+            position: absolute;
+            pointer-events: none;
+            z-index: 200;
+        }
+        .sand-particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #d4a85a;
+            border-radius: 50%;
+            animation: sandBurst 0.5s ease-out forwards;
+        }
+        @keyframes sandBurst {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0.3); opacity: 0; }
+        }
+
+        /* 水しぶきエフェクト */
+        .water-effect {
+            position: absolute;
+            pointer-events: none;
+            z-index: 200;
+        }
+        .water-droplet {
+            position: absolute;
+            width: 8px;
+            height: 12px;
+            background: radial-gradient(ellipse at center, rgba(150, 210, 255, 0.9) 0%, rgba(100, 180, 255, 0.6) 100%);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            animation: waterSplash 0.6s ease-out forwards;
+        }
+        @keyframes waterSplash {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            50% { opacity: 0.8; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0.5); opacity: 0; }
+        }
+
         /* チェッカーフラッグ柄のスタートライン */
         #startLine {
             position: absolute;
@@ -4090,9 +4129,15 @@
             const hillWidth = 80;
             const hillHeight = 40;
 
+            // コース（縦線）の位置を計算
+            const colWidth = courseWidth / playerCount;
+
             // トンネル位置を避けるためのゾーン設定
             const tunnelY = raceTopMargin + ladderHeight * 0.4;
             const tunnelHeight = 300;
+
+            // 使用済みの列を追跡（同じ列に複数配置しない）
+            const usedColumns = [];
 
             for (let i = 0; i < numHills; i++) {
                 // Y位置: レース開始後〜ゴール手前（トンネルを避ける）
@@ -4103,8 +4148,18 @@
                     attempts++;
                 } while (y > tunnelY - 50 && y < tunnelY + tunnelHeight && attempts < 20);
 
-                // X位置: コース幅内でランダム
-                const x = 20 + Math.random() * (courseWidth - hillWidth - 40);
+                // X位置: コースの縦線上にランダム配置
+                let columnIdx;
+                attempts = 0;
+                do {
+                    columnIdx = Math.floor(Math.random() * playerCount);
+                    attempts++;
+                } while (usedColumns.includes(columnIdx) && attempts < 20);
+                usedColumns.push(columnIdx);
+
+                // 列の中心にX位置を設定
+                const centerX = (columnIdx * colWidth) + (colWidth / 2);
+                const x = centerX - hillWidth / 2;
 
                 // 砂山を追加
                 const hillEl = document.createElement('div');
@@ -4128,6 +4183,29 @@
             sandHills = [];
             const sandHillLayer = document.getElementById('sandHillLayer');
             if (sandHillLayer) sandHillLayer.innerHTML = '';
+        }
+
+        // 砂エフェクトを表示
+        function showSandEffect(x, y) {
+            const gameScreen = document.getElementById('gameScreen');
+            const effect = document.createElement('div');
+            effect.className = 'sand-effect';
+            effect.style.left = x + 'px';
+            effect.style.top = y + 'px';
+
+            // 砂粒子を8個生成
+            for (let i = 0; i < 8; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'sand-particle';
+                const angle = (i / 8) * Math.PI * 2;
+                const distance = 15 + Math.random() * 20;
+                particle.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+                particle.style.setProperty('--ty', Math.sin(angle) * distance - 10 + 'px');
+                effect.appendChild(particle);
+            }
+
+            gameScreen.appendChild(effect);
+            setTimeout(() => effect.remove(), 500);
         }
 
         function isInSandHill(playerX, playerY) {
@@ -4160,9 +4238,15 @@
             const puddleWidth = 90;
             const puddleHeight = 45;
 
+            // コース（縦線）の位置を計算
+            const colWidth = courseWidth / playerCount;
+
             // トンネル位置を避けるためのゾーン設定
             const tunnelY = raceTopMargin + ladderHeight * 0.4;
             const tunnelHeight = 300;
+
+            // 使用済みの列を追跡（同じ列に複数配置しない）
+            const usedColumns = [];
 
             for (let i = 0; i < numPuddles; i++) {
                 // Y位置: レース開始後〜ゴール手前（トンネルを避ける）
@@ -4173,8 +4257,18 @@
                     attempts++;
                 } while (y > tunnelY - 50 && y < tunnelY + tunnelHeight && attempts < 20);
 
-                // X位置: コース幅内でランダム
-                const x = 20 + Math.random() * (courseWidth - puddleWidth - 40);
+                // X位置: コースの縦線上にランダム配置
+                let columnIdx;
+                attempts = 0;
+                do {
+                    columnIdx = Math.floor(Math.random() * playerCount);
+                    attempts++;
+                } while (usedColumns.includes(columnIdx) && attempts < 20);
+                usedColumns.push(columnIdx);
+
+                // 列の中心にX位置を設定
+                const centerX = (columnIdx * colWidth) + (colWidth / 2);
+                const x = centerX - puddleWidth / 2;
 
                 // 水たまりを追加
                 const puddleEl = document.createElement('div');
@@ -4200,6 +4294,29 @@
             waterTrailIdCounter = 0;
             const waterPuddleLayer = document.getElementById('waterPuddleLayer');
             if (waterPuddleLayer) waterPuddleLayer.innerHTML = '';
+        }
+
+        // 水しぶきエフェクトを表示
+        function showWaterEffect(x, y) {
+            const gameScreen = document.getElementById('gameScreen');
+            const effect = document.createElement('div');
+            effect.className = 'water-effect';
+            effect.style.left = x + 'px';
+            effect.style.top = y + 'px';
+
+            // 水滴を6個生成
+            for (let i = 0; i < 6; i++) {
+                const droplet = document.createElement('div');
+                droplet.className = 'water-droplet';
+                const angle = (i / 6) * Math.PI * 2;
+                const distance = 20 + Math.random() * 15;
+                droplet.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+                droplet.style.setProperty('--ty', Math.sin(angle) * distance - 20 + 'px');
+                effect.appendChild(droplet);
+            }
+
+            gameScreen.appendChild(effect);
+            setTimeout(() => effect.remove(), 600);
         }
 
         function isInWaterPuddle(playerX, playerY) {
@@ -7981,7 +8098,8 @@
 
             players.forEach(p => {
                 if (p.state === 'moving') {
-                    // 水たまり関連のプロパティ初期化
+                    // 障害物関連のプロパティ初期化
+                    if (p.wasInSandHill === undefined) p.wasInSandHill = false;
                     if (p.wasInWaterPuddle === undefined) p.wasInWaterPuddle = false;
                     if (p.slippedTrails === undefined) p.slippedTrails = [];
                     if (p.slipTimer === undefined) p.slipTimer = 0;
@@ -8007,8 +8125,19 @@
                         // 砂山にいるかチェック
                         const inSandHill = isInSandHill(p.x, p.y);
 
+                        // 砂山に入った時にエフェクト表示
+                        if (!p.wasInSandHill && inSandHill) {
+                            showSandEffect(p.x, p.y);
+                        }
+                        p.wasInSandHill = inSandHill;
+
                         // 水たまりにいるかチェック
                         const inWaterPuddle = isInWaterPuddle(p.x, p.y);
+
+                        // 水たまりに入った時にエフェクト表示
+                        if (!p.wasInWaterPuddle && inWaterPuddle) {
+                            showWaterEffect(p.x, p.y);
+                        }
 
                         // 水たまりから出た時に水跡を作成
                         if (p.wasInWaterPuddle && !inWaterPuddle) {
