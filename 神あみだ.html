@@ -4048,13 +4048,14 @@
         let sandHills = [];  // 砂山の位置情報 [{x, y, width, height}]
         const SAND_HILL_SLOWDOWN = 0.5;  // 砂山での速度係数（50%に減速）
 
-        function createSandHills(raceTopMargin, ladderHeight, courseWidth) {
+        function createSandHills(raceTopMargin, ladderHeight, courseWidth, playerCount) {
             clearSandHills();
             const sandHillLayer = document.getElementById('sandHillLayer');
             if (!sandHillLayer) return;
 
-            // 砂山を3〜5個ランダム配置
-            const numHills = 3 + Math.floor(Math.random() * 3);
+            // 砂山の数は参加人数に応じて変わる（2人:1〜2個、4人:2〜3個、6人:3〜4個、8人:4〜5個）
+            const baseHills = Math.max(1, Math.floor(playerCount / 2));
+            const numHills = baseHills + Math.floor(Math.random() * 2);
             const hillWidth = 80;
             const hillHeight = 40;
 
@@ -5186,8 +5187,8 @@
             tunnelShadow.style.display = 'block';
             tunnelShadow.style.top = (tunnelTop + 280) + 'px';
 
-            // 砂山をランダム配置
-            createSandHills(raceTopMargin, ladderHeight, logicalWidth);
+            // 砂山をランダム配置（参加人数に応じた数）
+            createSandHills(raceTopMargin, ladderHeight, logicalWidth, count);
 
             // ドロップゾーンを生成（スタートラインの上に）
             createDropZones(count, columnWidth, raceTopMargin - 10);
