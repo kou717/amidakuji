@@ -1569,11 +1569,12 @@
             transform: translateX(-50%);
             width: 80%;
             max-width: 380px;
-            height: 100px;
+            height: 350px;
             background: linear-gradient(to bottom,
                 rgba(40, 30, 20, 0.8) 0%,
-                rgba(40, 30, 20, 0.5) 40%,
-                rgba(40, 30, 20, 0.2) 70%,
+                rgba(40, 30, 20, 0.6) 20%,
+                rgba(40, 30, 20, 0.4) 50%,
+                rgba(40, 30, 20, 0.15) 80%,
                 transparent 100%);
             z-index: 140;
             pointer-events: none;
@@ -4275,7 +4276,7 @@
             }
 
             // セットアップ画面のBGM制御
-            if (id === 'setupScreen' || id === 'raceSetupScreen') {
+            if (id === 'setupScreen' || id === 'raceSetupScreen' || id === 'raceGoalScreen') {
                 startSetupBgm();
             } else {
                 stopSetupBgm();
