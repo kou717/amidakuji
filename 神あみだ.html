@@ -7808,6 +7808,19 @@
             }
 
             createLadders(count, steps);
+
+            // レースモードの場合、砂山と水たまりを再配置
+            if (currentMode === 'race') {
+                const canvas = document.getElementById('amidaCanvas');
+                const logicalWidth = canvas.clientWidth;
+                const logicalHeight = canvas.clientHeight;
+                const raceTopMargin = 150;
+                const ladderHeight = logicalHeight - raceTopMargin - 250;
+
+                createSandHills(raceTopMargin, ladderHeight, logicalWidth, count);
+                createWaterPuddles(raceTopMargin, ladderHeight, logicalWidth, count);
+            }
+
             drawFrame();
         }
 
