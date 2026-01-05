@@ -1581,6 +1581,19 @@
             display: none;
         }
 
+        /* 砂山 */
+        .sand-hill {
+            position: absolute;
+            width: 80px;
+            height: auto;
+            z-index: 90;
+            pointer-events: none;
+        }
+        .sand-hill img {
+            width: 100%;
+            height: auto;
+        }
+
         /* チェッカーフラッグ柄のスタートライン */
         #startLine {
             position: absolute;
@@ -2900,6 +2913,7 @@
     <div id="gameScreen" class="screen">
         <div id="buttonLayer"></div>
         <div id="dropZoneLayer"></div>
+        <div id="sandHillLayer"></div>
         <div id="runningCharsLayer"></div>
         <div id="tunnelShadow"></div>
         <div id="raceTunnel"><img src="トンネル.png" alt="トンネル"></div>
@@ -4030,6 +4044,70 @@
         let heartbeatInterval = null;    // 心臓の鼓動用
         let speedLinesActive = false;    // スピードライン表示中
 
+        // 砂山関連
+        let sandHills = [];  // 砂山の位置情報 [{x, y, width, height}]
+        const SAND_HILL_SLOWDOWN = 0.5;  // 砂山での速度係数（50%に減速）
+
+        function createSandHills(raceTopMargin, ladderHeight, courseWidth) {
+            clearSandHills();
+            const sandHillLayer = document.getElementById('sandHillLayer');
+            if (!sandHillLayer) return;
+
+            // 砂山を3〜5個ランダム配置
+            const numHills = 3 + Math.floor(Math.random() * 3);
+            const hillWidth = 80;
+            const hillHeight = 40;
+
+            // トンネル位置を避けるためのゾーン設定
+            const tunnelY = raceTopMargin + ladderHeight * 0.4;
+            const tunnelHeight = 300;
+
+            for (let i = 0; i < numHills; i++) {
+                // Y位置: レース開始後〜ゴール手前（トンネルを避ける）
+                let y;
+                let attempts = 0;
+                do {
+                    y = raceTopMargin + 100 + Math.random() * (ladderHeight - 200);
+                    attempts++;
+                } while (y > tunnelY - 50 && y < tunnelY + tunnelHeight && attempts < 20);
+
+                // X位置: コース幅内でランダム
+                const x = 20 + Math.random() * (courseWidth - hillWidth - 40);
+
+                // 砂山を追加
+                const hillEl = document.createElement('div');
+                hillEl.className = 'sand-hill';
+                hillEl.innerHTML = '<img src="すなやま.png" alt="砂山">';
+                hillEl.style.left = x + 'px';
+                hillEl.style.top = y + 'px';
+                sandHillLayer.appendChild(hillEl);
+
+                // 当たり判定用に位置を保存
+                sandHills.push({
+                    x: x,
+                    y: y,
+                    width: hillWidth,
+                    height: hillHeight
+                });
+            }
+        }
+
+        function clearSandHills() {
+            sandHills = [];
+            const sandHillLayer = document.getElementById('sandHillLayer');
+            if (sandHillLayer) sandHillLayer.innerHTML = '';
+        }
+
+        function isInSandHill(playerX, playerY) {
+            for (const hill of sandHills) {
+                if (playerX > hill.x - 20 && playerX < hill.x + hill.width + 20 &&
+                    playerY > hill.y - 10 && playerY < hill.y + hill.height + 30) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         function updateLeaderSparkle() {
             // 全キャラからキラキラを削除
             document.querySelectorAll('.leader-sparkle').forEach(el => el.remove());
@@ -4334,6 +4412,9 @@
             if (raceTunnel) raceTunnel.style.display = 'none';
             const tunnelShadow = document.getElementById('tunnelShadow');
             if (tunnelShadow) tunnelShadow.style.display = 'none';
+
+            // 砂山をクリア
+            clearSandHills();
 
             // ドロップゾーンをクリア
             const dropZoneLayer = document.getElementById('dropZoneLayer');
@@ -5104,6 +5185,9 @@
             // トンネル影を表示（トンネル出口の下）
             tunnelShadow.style.display = 'block';
             tunnelShadow.style.top = (tunnelTop + 280) + 'px';
+
+            // 砂山をランダム配置
+            createSandHills(raceTopMargin, ladderHeight, logicalWidth);
 
             // ドロップゾーンを生成（スタートラインの上に）
             createDropZones(count, columnWidth, raceTopMargin - 10);
@@ -7729,6 +7813,9 @@
                     for (let i = 0; i < iterations; i++) {
                         if (p.state !== 'moving') break; // 途中で終了した場合
 
+                        // 砂山にいるかチェック
+                        const inSandHill = isInSandHill(p.x, p.y);
+
                         if (p.sliding) {
                             // 斜め (4.0基準)
                             if (p.slideTargetY > p.slideStartY) {
@@ -7750,7 +7837,9 @@
                         // 横移動は movePlayer内で 4.0 固定
 
                         // 1倍速の速度で移動（倍率は繰り返し回数で対応）
-                        movePlayer(p, p.currentSpeed);
+                        // 砂山にいる場合は減速
+                        const actualSpeed = inSandHill ? p.currentSpeed * SAND_HILL_SLOWDOWN : p.currentSpeed;
+                        movePlayer(p, actualSpeed);
                     }
 
                     if (p.y > targetY) targetY = p.y;
