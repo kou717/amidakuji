@@ -1606,6 +1606,24 @@
             height: auto;
         }
 
+        .water-trail {
+            position: absolute;
+            background: radial-gradient(ellipse at center,
+                rgba(100, 180, 255, 0.5) 0%,
+                rgba(100, 180, 255, 0.3) 50%,
+                transparent 100%);
+            border-radius: 50%;
+            z-index: 80;
+            pointer-events: none;
+            animation: waterTrailFade 3s ease-out forwards;
+        }
+
+        @keyframes waterTrailFade {
+            0% { opacity: 1; }
+            70% { opacity: 0.7; }
+            100% { opacity: 0; }
+        }
+
         /* チェッカーフラッグ柄のスタートライン */
         #startLine {
             position: absolute;
@@ -4124,7 +4142,12 @@
 
         // 水たまり関連
         let waterPuddles = [];  // 水たまりの位置情報 [{x, y, width, height}]
-        const WATER_PUDDLE_SPEEDUP = 1.5;  // 水たまりでの速度係数（150%にスピードアップ）
+        const WATER_PUDDLE_SLOWDOWN = 0.7;  // 水たまりでの速度係数（70%に減速）
+
+        // 水跡関連
+        let waterTrails = [];  // 水跡 [{id, x, y, width, height, createdAt, createdBy}]
+        let waterTrailIdCounter = 0;
+        const WATER_TRAIL_DURATION = 3000;  // 水跡の持続時間（3秒）
 
         function createWaterPuddles(raceTopMargin, ladderHeight, courseWidth, playerCount) {
             clearWaterPuddles();
@@ -4173,6 +4196,8 @@
 
         function clearWaterPuddles() {
             waterPuddles = [];
+            waterTrails = [];
+            waterTrailIdCounter = 0;
             const waterPuddleLayer = document.getElementById('waterPuddleLayer');
             if (waterPuddleLayer) waterPuddleLayer.innerHTML = '';
         }
@@ -4185,6 +4210,62 @@
                 }
             }
             return false;
+        }
+
+        // 水跡を作成（キャラが水たまりを通過した後）
+        function createWaterTrail(playerX, playerY, playerIdx) {
+            const trailId = ++waterTrailIdCounter;
+            const trail = {
+                id: trailId,
+                x: playerX - 30,
+                y: playerY,
+                width: 60,
+                height: 40,
+                createdAt: Date.now(),
+                createdBy: playerIdx
+            };
+            waterTrails.push(trail);
+
+            // 水跡のDOM要素を作成
+            const waterPuddleLayer = document.getElementById('waterPuddleLayer');
+            if (waterPuddleLayer) {
+                const trailEl = document.createElement('div');
+                trailEl.className = 'water-trail';
+                trailEl.id = `water-trail-${trailId}`;
+                trailEl.style.left = trail.x + 'px';
+                trailEl.style.top = trail.y + 'px';
+                trailEl.style.width = trail.width + 'px';
+                trailEl.style.height = trail.height + 'px';
+                waterPuddleLayer.appendChild(trailEl);
+
+                // 3秒後に消える
+                setTimeout(() => {
+                    trailEl.remove();
+                    waterTrails = waterTrails.filter(t => t.id !== trailId);
+                }, WATER_TRAIL_DURATION);
+            }
+
+            return trailId;
+        }
+
+        // 水跡に当たっているかチェック（スリップ対象の水跡IDを返す）
+        function checkWaterTrailSlip(playerX, playerY, playerIdx, slippedTrails) {
+            const now = Date.now();
+            for (const trail of waterTrails) {
+                // 自分が作った水跡では滑らない
+                if (trail.createdBy === playerIdx) continue;
+                // 既にこの水跡で滑った
+                if (slippedTrails.includes(trail.id)) continue;
+                // 期限切れ
+                if (now - trail.createdAt > WATER_TRAIL_DURATION) continue;
+
+                // 当たり判定
+                if (playerX > trail.x - 10 && playerX < trail.x + trail.width + 10 &&
+                    playerY > trail.y - 10 && playerY < trail.y + trail.height + 20) {
+                    return trail.id;
+                }
+            }
+            return null;
         }
 
         function updateLeaderSparkle() {
@@ -4494,6 +4575,9 @@
 
             // 砂山をクリア
             clearSandHills();
+
+            // 水たまりをクリア
+            clearWaterPuddles();
 
             // ドロップゾーンをクリア
             const dropZoneLayer = document.getElementById('dropZoneLayer');
@@ -5267,6 +5351,9 @@
 
             // 砂山をランダム配置（参加人数に応じた数）
             createSandHills(raceTopMargin, ladderHeight, logicalWidth, count);
+
+            // 水たまりをランダム配置
+            createWaterPuddles(raceTopMargin, ladderHeight, logicalWidth, count);
 
             // ドロップゾーンを生成（スタートラインの上に）
             createDropZones(count, columnWidth, raceTopMargin - 10);
@@ -7881,6 +7968,18 @@
 
             players.forEach(p => {
                 if (p.state === 'moving') {
+                    // 水たまり関連のプロパティ初期化
+                    if (p.wasInWaterPuddle === undefined) p.wasInWaterPuddle = false;
+                    if (p.slippedTrails === undefined) p.slippedTrails = [];
+                    if (p.slipTimer === undefined) p.slipTimer = 0;
+
+                    // スリップ中は一瞬止まる
+                    if (p.slipTimer > 0) {
+                        p.slipTimer--;
+                        if (p.y > targetY) targetY = p.y;
+                        return; // forEachではcontinueの代わりにreturn
+                    }
+
                     if (p.scale < 1) {
                         p.scale += 0.25;
                         if(p.scale > 1) p.scale = 1;
@@ -7894,6 +7993,25 @@
 
                         // 砂山にいるかチェック
                         const inSandHill = isInSandHill(p.x, p.y);
+
+                        // 水たまりにいるかチェック
+                        const inWaterPuddle = isInWaterPuddle(p.x, p.y);
+
+                        // 水たまりから出た時に水跡を作成
+                        if (p.wasInWaterPuddle && !inWaterPuddle) {
+                            createWaterTrail(p.x, p.y, players.indexOf(p));
+                        }
+                        p.wasInWaterPuddle = inWaterPuddle;
+
+                        // 水跡でスリップチェック
+                        if (!inWaterPuddle) {
+                            const slipTrailId = checkWaterTrailSlip(p.x, p.y, players.indexOf(p), p.slippedTrails);
+                            if (slipTrailId !== null) {
+                                p.slippedTrails.push(slipTrailId);
+                                p.slipTimer = 15; // 約0.25秒間止まる
+                                break; // このフレームは移動しない
+                            }
+                        }
 
                         if (p.sliding) {
                             // 斜め (4.0基準)
@@ -7916,8 +8034,13 @@
                         // 横移動は movePlayer内で 4.0 固定
 
                         // 1倍速の速度で移動（倍率は繰り返し回数で対応）
-                        // 砂山にいる場合は減速
-                        const actualSpeed = inSandHill ? p.currentSpeed * SAND_HILL_SLOWDOWN : p.currentSpeed;
+                        // 砂山または水たまりにいる場合は減速
+                        let actualSpeed = p.currentSpeed;
+                        if (inSandHill) {
+                            actualSpeed *= SAND_HILL_SLOWDOWN;
+                        } else if (inWaterPuddle) {
+                            actualSpeed *= WATER_PUDDLE_SLOWDOWN;
+                        }
                         movePlayer(p, actualSpeed);
                     }
 
