@@ -8119,11 +8119,14 @@
                     if (p.slipTimer === undefined) p.slipTimer = 0;
                     if (p.obstacleTimer === undefined) p.obstacleTimer = 0;
 
-                    // 障害物で止まっている間はカウントダウン
+                    // 障害物を抜ける間はゆっくり移動
                     if (p.obstacleTimer > 0) {
                         p.obstacleTimer--;
+                        // ゆっくり動く（通常の15%程度の速度）
+                        movePlayer(p, 1.0);
+                        activeCount++;
                         if (p.y > targetY) targetY = p.y;
-                        return; // forEachではcontinueの代わりにreturn
+                        return;
                     }
 
                     // スリップ中は一瞬止まる
