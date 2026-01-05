@@ -1594,6 +1594,18 @@
             height: auto;
         }
 
+        .water-puddle {
+            position: absolute;
+            width: 90px;
+            height: auto;
+            z-index: 85;
+            pointer-events: none;
+        }
+        .water-puddle img {
+            width: 100%;
+            height: auto;
+        }
+
         /* チェッカーフラッグ柄のスタートライン */
         #startLine {
             position: absolute;
@@ -2914,6 +2926,7 @@
         <div id="buttonLayer"></div>
         <div id="dropZoneLayer"></div>
         <div id="sandHillLayer"></div>
+        <div id="waterPuddleLayer"></div>
         <div id="runningCharsLayer"></div>
         <div id="tunnelShadow"></div>
         <div id="raceTunnel"><img src="トンネル.png" alt="トンネル"></div>
@@ -4103,6 +4116,71 @@
             for (const hill of sandHills) {
                 if (playerX > hill.x - 20 && playerX < hill.x + hill.width + 20 &&
                     playerY > hill.y - 10 && playerY < hill.y + hill.height + 30) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // 水たまり関連
+        let waterPuddles = [];  // 水たまりの位置情報 [{x, y, width, height}]
+        const WATER_PUDDLE_SPEEDUP = 1.5;  // 水たまりでの速度係数（150%にスピードアップ）
+
+        function createWaterPuddles(raceTopMargin, ladderHeight, courseWidth, playerCount) {
+            clearWaterPuddles();
+            const waterPuddleLayer = document.getElementById('waterPuddleLayer');
+            if (!waterPuddleLayer) return;
+
+            // 水たまりの数は参加人数に応じて変わる（砂山より少なめ）
+            const basePuddles = Math.max(1, Math.floor(playerCount / 3));
+            const numPuddles = basePuddles + Math.floor(Math.random() * 2);
+            const puddleWidth = 90;
+            const puddleHeight = 45;
+
+            // トンネル位置を避けるためのゾーン設定
+            const tunnelY = raceTopMargin + ladderHeight * 0.4;
+            const tunnelHeight = 300;
+
+            for (let i = 0; i < numPuddles; i++) {
+                // Y位置: レース開始後〜ゴール手前（トンネルを避ける）
+                let y;
+                let attempts = 0;
+                do {
+                    y = raceTopMargin + 100 + Math.random() * (ladderHeight - 200);
+                    attempts++;
+                } while (y > tunnelY - 50 && y < tunnelY + tunnelHeight && attempts < 20);
+
+                // X位置: コース幅内でランダム
+                const x = 20 + Math.random() * (courseWidth - puddleWidth - 40);
+
+                // 水たまりを追加
+                const puddleEl = document.createElement('div');
+                puddleEl.className = 'water-puddle';
+                puddleEl.innerHTML = '<img src="水たまり.png" alt="水たまり">';
+                puddleEl.style.left = x + 'px';
+                puddleEl.style.top = y + 'px';
+                waterPuddleLayer.appendChild(puddleEl);
+
+                // 当たり判定用に位置を保存
+                waterPuddles.push({
+                    x: x,
+                    y: y,
+                    width: puddleWidth,
+                    height: puddleHeight
+                });
+            }
+        }
+
+        function clearWaterPuddles() {
+            waterPuddles = [];
+            const waterPuddleLayer = document.getElementById('waterPuddleLayer');
+            if (waterPuddleLayer) waterPuddleLayer.innerHTML = '';
+        }
+
+        function isInWaterPuddle(playerX, playerY) {
+            for (const puddle of waterPuddles) {
+                if (playerX > puddle.x - 20 && playerX < puddle.x + puddle.width + 20 &&
+                    playerY > puddle.y - 10 && playerY < puddle.y + puddle.height + 30) {
                     return true;
                 }
             }
