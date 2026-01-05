@@ -1632,15 +1632,16 @@
         }
         .sand-particle {
             position: absolute;
-            width: 6px;
-            height: 6px;
-            background: #d4a85a;
+            width: 10px;
+            height: 10px;
+            background: radial-gradient(circle, #e8c878 0%, #c9a050 100%);
             border-radius: 50%;
-            animation: sandBurst 0.5s ease-out forwards;
+            box-shadow: 0 0 3px rgba(200, 160, 80, 0.8);
+            animation: sandBurst 0.6s ease-out forwards;
         }
         @keyframes sandBurst {
-            0% { transform: translate(0, 0) scale(1); opacity: 1; }
-            100% { transform: translate(var(--tx), var(--ty)) scale(0.3); opacity: 0; }
+            0% { transform: translate(0, 0) scale(1.2); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0.4); opacity: 0; }
         }
 
         /* 水しぶきエフェクト */
@@ -1651,15 +1652,16 @@
         }
         .water-droplet {
             position: absolute;
-            width: 8px;
-            height: 12px;
-            background: radial-gradient(ellipse at center, rgba(150, 210, 255, 0.9) 0%, rgba(100, 180, 255, 0.6) 100%);
+            width: 12px;
+            height: 16px;
+            background: radial-gradient(ellipse at center, rgba(180, 230, 255, 1) 0%, rgba(80, 160, 255, 0.8) 100%);
             border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-            animation: waterSplash 0.6s ease-out forwards;
+            box-shadow: 0 0 5px rgba(100, 180, 255, 0.9);
+            animation: waterSplash 0.7s ease-out forwards;
         }
         @keyframes waterSplash {
-            0% { transform: translate(0, 0) scale(1); opacity: 1; }
-            50% { opacity: 0.8; }
+            0% { transform: translate(0, 0) scale(1.3); opacity: 1; }
+            40% { opacity: 0.9; }
             100% { transform: translate(var(--tx), var(--ty)) scale(0.5); opacity: 0; }
         }
 
@@ -4190,28 +4192,34 @@
             const gameScreen = document.getElementById('gameScreen');
             const effect = document.createElement('div');
             effect.className = 'sand-effect';
-            effect.style.left = x + 'px';
-            effect.style.top = y + 'px';
+            effect.style.left = (x - 30) + 'px';
+            effect.style.top = (y - 20) + 'px';
+            effect.style.width = '60px';
+            effect.style.height = '60px';
 
-            // 砂粒子を8個生成
-            for (let i = 0; i < 8; i++) {
+            // 砂粒子を12個生成
+            for (let i = 0; i < 12; i++) {
                 const particle = document.createElement('div');
                 particle.className = 'sand-particle';
-                const angle = (i / 8) * Math.PI * 2;
-                const distance = 15 + Math.random() * 20;
+                particle.style.left = '30px';
+                particle.style.top = '30px';
+                const angle = (i / 12) * Math.PI * 2;
+                const distance = 20 + Math.random() * 25;
                 particle.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
-                particle.style.setProperty('--ty', Math.sin(angle) * distance - 10 + 'px');
+                particle.style.setProperty('--ty', Math.sin(angle) * distance - 15 + 'px');
                 effect.appendChild(particle);
             }
 
             gameScreen.appendChild(effect);
-            setTimeout(() => effect.remove(), 500);
+            setTimeout(() => effect.remove(), 600);
         }
 
         function isInSandHill(playerX, playerY) {
             for (const hill of sandHills) {
-                if (playerX > hill.x - 20 && playerX < hill.x + hill.width + 20 &&
-                    playerY > hill.y - 10 && playerY < hill.y + hill.height + 30) {
+                // 列の中心からの判定（hillWidthの半分 + マージン）
+                const hillCenterX = hill.x + hill.width / 2;
+                if (Math.abs(playerX - hillCenterX) < 50 &&
+                    playerY > hill.y - 20 && playerY < hill.y + hill.height + 50) {
                     return true;
                 }
             }
@@ -4301,28 +4309,34 @@
             const gameScreen = document.getElementById('gameScreen');
             const effect = document.createElement('div');
             effect.className = 'water-effect';
-            effect.style.left = x + 'px';
-            effect.style.top = y + 'px';
+            effect.style.left = (x - 30) + 'px';
+            effect.style.top = (y - 20) + 'px';
+            effect.style.width = '60px';
+            effect.style.height = '60px';
 
-            // 水滴を6個生成
-            for (let i = 0; i < 6; i++) {
+            // 水滴を10個生成
+            for (let i = 0; i < 10; i++) {
                 const droplet = document.createElement('div');
                 droplet.className = 'water-droplet';
-                const angle = (i / 6) * Math.PI * 2;
-                const distance = 20 + Math.random() * 15;
+                droplet.style.left = '30px';
+                droplet.style.top = '30px';
+                const angle = (i / 10) * Math.PI * 2;
+                const distance = 25 + Math.random() * 20;
                 droplet.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
-                droplet.style.setProperty('--ty', Math.sin(angle) * distance - 20 + 'px');
+                droplet.style.setProperty('--ty', Math.sin(angle) * distance - 25 + 'px');
                 effect.appendChild(droplet);
             }
 
             gameScreen.appendChild(effect);
-            setTimeout(() => effect.remove(), 600);
+            setTimeout(() => effect.remove(), 700);
         }
 
         function isInWaterPuddle(playerX, playerY) {
             for (const puddle of waterPuddles) {
-                if (playerX > puddle.x - 20 && playerX < puddle.x + puddle.width + 20 &&
-                    playerY > puddle.y - 10 && playerY < puddle.y + puddle.height + 30) {
+                // 列の中心からの判定
+                const puddleCenterX = puddle.x + puddle.width / 2;
+                if (Math.abs(playerX - puddleCenterX) < 55 &&
+                    playerY > puddle.y - 20 && playerY < puddle.y + puddle.height + 50) {
                     return true;
                 }
             }
