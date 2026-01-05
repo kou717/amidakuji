@@ -8122,32 +8122,42 @@
                     for (let i = 0; i < iterations; i++) {
                         if (p.state !== 'moving') break; // 途中で終了した場合
 
+                        // プレイヤーの現在のX座標を計算
+                        let playerX;
+                        if (p.sliding) {
+                            // 斜め移動中は進行度で補間
+                            playerX = p.slideStartX + (p.slideTargetX - p.slideStartX) * p.moveProgress;
+                        } else {
+                            // 縦移動中は列の中心
+                            playerX = (p.xIdx * columnWidth) + (columnWidth / 2);
+                        }
+
                         // 砂山にいるかチェック
-                        const inSandHill = isInSandHill(p.x, p.y);
+                        const inSandHill = isInSandHill(playerX, p.y);
 
                         // 砂山に入った時にエフェクト表示
                         if (!p.wasInSandHill && inSandHill) {
-                            showSandEffect(p.x, p.y);
+                            showSandEffect(playerX, p.y);
                         }
                         p.wasInSandHill = inSandHill;
 
                         // 水たまりにいるかチェック
-                        const inWaterPuddle = isInWaterPuddle(p.x, p.y);
+                        const inWaterPuddle = isInWaterPuddle(playerX, p.y);
 
                         // 水たまりに入った時にエフェクト表示
                         if (!p.wasInWaterPuddle && inWaterPuddle) {
-                            showWaterEffect(p.x, p.y);
+                            showWaterEffect(playerX, p.y);
                         }
 
                         // 水たまりから出た時に水跡を作成
                         if (p.wasInWaterPuddle && !inWaterPuddle) {
-                            createWaterTrail(p.x, p.y, players.indexOf(p));
+                            createWaterTrail(playerX, p.y, players.indexOf(p));
                         }
                         p.wasInWaterPuddle = inWaterPuddle;
 
                         // 水跡でスリップチェック
                         if (!inWaterPuddle) {
-                            const slipTrailId = checkWaterTrailSlip(p.x, p.y, players.indexOf(p), p.slippedTrails);
+                            const slipTrailId = checkWaterTrailSlip(playerX, p.y, players.indexOf(p), p.slippedTrails);
                             if (slipTrailId !== null) {
                                 p.slippedTrails.push(slipTrailId);
                                 p.slipTimer = 15; // 約0.25秒間止まる
