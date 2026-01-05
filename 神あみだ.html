@@ -1562,21 +1562,22 @@
             width: 100%;
             height: auto;
         }
-        /* トンネル下の影 */
-        #raceTunnel::after {
-            content: '';
+        /* トンネル内の影（出口付近の暗さ） */
+        #tunnelShadow {
             position: absolute;
-            bottom: -80px;
-            left: 10%;
+            left: 50%;
+            transform: translateX(-50%);
             width: 80%;
-            height: 80px;
+            max-width: 380px;
+            height: 100px;
             background: linear-gradient(to bottom,
-                rgba(50, 40, 30, 0.7) 0%,
-                rgba(50, 40, 30, 0.4) 30%,
-                rgba(50, 40, 30, 0.15) 60%,
+                rgba(40, 30, 20, 0.8) 0%,
+                rgba(40, 30, 20, 0.5) 40%,
+                rgba(40, 30, 20, 0.2) 70%,
                 transparent 100%);
-            border-radius: 0 0 50% 50%;
-            z-index: -1;
+            z-index: 140;
+            pointer-events: none;
+            display: none;
         }
 
         /* チェッカーフラッグ柄のスタートライン */
@@ -2899,6 +2900,7 @@
         <div id="buttonLayer"></div>
         <div id="dropZoneLayer"></div>
         <div id="runningCharsLayer"></div>
+        <div id="tunnelShadow"></div>
         <div id="raceTunnel"><img src="トンネル.png" alt="トンネル"></div>
         <div id="startLine" style="display:none;"></div>
 
@@ -4329,6 +4331,8 @@
             // トンネルを非表示
             const raceTunnel = document.getElementById('raceTunnel');
             if (raceTunnel) raceTunnel.style.display = 'none';
+            const tunnelShadow = document.getElementById('tunnelShadow');
+            if (tunnelShadow) tunnelShadow.style.display = 'none';
 
             // ドロップゾーンをクリア
             const dropZoneLayer = document.getElementById('dropZoneLayer');
@@ -5092,8 +5096,13 @@
 
             // トンネルを表示（レースの中間地点）
             const raceTunnel = document.getElementById('raceTunnel');
+            const tunnelShadow = document.getElementById('tunnelShadow');
+            const tunnelTop = raceTopMargin + ladderHeight * 0.4;
             raceTunnel.style.display = 'block';
-            raceTunnel.style.top = (raceTopMargin + ladderHeight * 0.4) + 'px';
+            raceTunnel.style.top = tunnelTop + 'px';
+            // トンネル影を表示（トンネル出口の下）
+            tunnelShadow.style.display = 'block';
+            tunnelShadow.style.top = (tunnelTop + 280) + 'px';
 
             // ドロップゾーンを生成（スタートラインの上に）
             createDropZones(count, columnWidth, raceTopMargin - 10);
